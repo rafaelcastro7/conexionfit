@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PROGRAMS } from '@/types/client';
-import { Client } from '@/types/client';
+import { Client } from '@/hooks/useClients';
 import { UserPlus, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -63,14 +63,14 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
 
   const canAddMore = programs.length < PROGRAMS.length - existingPrograms.length;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const validPrograms = programs.filter(
       (p) => p.program && p.totalClasses && p.unitValue
     );
     if (!name || !cedula || validPrograms.length === 0) return;
 
-    validPrograms.forEach((p) => {
-      onAdd({
+    for (const p of validPrograms) {
+      await onAdd({
         name: name.toUpperCase(),
         cedula: cedula.trim(),
         program: p.program,
@@ -78,7 +78,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
         unitValue: Number(p.unitValue),
         totalValue: Number(p.totalClasses) * Number(p.unitValue),
       });
-    });
+    }
 
     setName('');
     setCedula('');
@@ -105,7 +105,6 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
           <DialogTitle className="text-2xl text-secondary">MATRICULAR CLIENTE</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-2">
-          {/* Client info */}
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Cédula</Label>
@@ -129,7 +128,6 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
             </div>
           </div>
 
-          {/* Existing programs indicator */}
           {existingPrograms.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">Programas actuales:</span>
@@ -139,7 +137,6 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
             </div>
           )}
 
-          {/* Program entries */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold">Programas a matricular</Label>
             {programs.map((entry, index) => {
@@ -149,21 +146,12 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-body text-muted-foreground">Programa {index + 1}</span>
                     {programs.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
-                        onClick={() => removeProgramRow(index)}
-                      >
+                      <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10" onClick={() => removeProgramRow(index)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     )}
                   </div>
-                  <Select
-                    value={entry.program}
-                    onValueChange={(v) => updateProgram(index, 'program', v)}
-                  >
+                  <Select value={entry.program} onValueChange={(v) => updateProgram(index, 'program', v)}>
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="Seleccionar programa" />
                     </SelectTrigger>
@@ -176,21 +164,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                   <div className="grid grid-cols-3 gap-2">
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Nº Clases</Label>
-                      <Input
-                        type="number"
-                        className="h-8 text-sm"
-                        value={entry.totalClasses}
-                        onChange={(e) => updateProgram(index, 'totalClasses', e.target.value)}
-                      />
+                      <Input type="number" className="h-8 text-sm" value={entry.totalClasses} onChange={(e) => updateProgram(index, 'totalClasses', e.target.value)} />
                     </div>
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Valor Unitario</Label>
-                      <Input
-                        type="number"
-                        className="h-8 text-sm"
-                        value={entry.unitValue}
-                        onChange={(e) => updateProgram(index, 'unitValue', e.target.value)}
-                      />
+                      <Input type="number" className="h-8 text-sm" value={entry.unitValue} onChange={(e) => updateProgram(index, 'unitValue', e.target.value)} />
                     </div>
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Subtotal</Label>
@@ -204,19 +182,12 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
             })}
 
             {canAddMore && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full gap-1.5 text-xs"
-                onClick={addProgramRow}
-              >
+              <Button type="button" variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addProgramRow}>
                 <Plus className="h-3.5 w-3.5" /> Agregar otro programa
               </Button>
             )}
           </div>
 
-          {/* Grand total */}
           {programs.length > 0 && (
             <div className="flex items-center justify-between rounded-lg bg-secondary/10 p-3">
               <span className="text-sm font-body font-semibold">Total General</span>
