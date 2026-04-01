@@ -133,7 +133,7 @@ const ClientPortal = () => {
         {/* Client info */}
         {client && (
           <>
-            <Card className={completed ? 'ring-2 ring-success/40' : ''}>
+            <Card className={`bg-card/90 backdrop-blur-md shadow-xl border-border/50 ${completed ? 'ring-2 ring-success/40' : ''}`}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div>
