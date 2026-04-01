@@ -111,7 +111,7 @@ const ClientPortal = () => {
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-lg space-y-6">
         {/* Search */}
-        <Card>
+        <Card className="bg-card/90 backdrop-blur-md shadow-xl border-border/50">
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground font-body mb-3">Ingresa tu número de cédula para consultar tu estado:</p>
             <div className="flex gap-2">
