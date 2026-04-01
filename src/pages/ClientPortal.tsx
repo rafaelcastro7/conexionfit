@@ -249,6 +249,7 @@ const ClientPortal = () => {
           </>
         )}
       </main>
+      </div>
     </div>
   );
 };
