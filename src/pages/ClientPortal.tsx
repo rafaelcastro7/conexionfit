@@ -15,6 +15,7 @@ import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell } from '
 import logo from '@/assets/conexion-fit-logo.png';
 import gymBg1 from '@/assets/gym-bg-1.jpg';
 import gymBg2 from '@/assets/gym-bg-2.jpg';
+import { Link } from 'react-router-dom';
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
