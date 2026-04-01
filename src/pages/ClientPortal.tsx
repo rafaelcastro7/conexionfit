@@ -85,10 +85,20 @@ const ClientPortal = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Background images - changes with program */}
-      <div className="fixed inset-0 z-0 transition-all duration-700">
-        <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700" key={heroImage} />
-        <div className="absolute inset-0 bg-secondary/80 backdrop-blur-sm" />
+      {/* Background collage of real gym photos */}
+      <div className="fixed inset-0 z-0">
+        <div className="grid grid-cols-3 grid-rows-2 w-full h-full">
+          {realImages.map((img, i) => (
+            <div key={i} className="relative overflow-hidden">
+              <img
+                src={img}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-secondary/85 backdrop-blur-[2px]" />
       </div>
       <div className="relative z-10 flex flex-col min-h-screen">
       <header className="bg-secondary/90 border-b border-border/20 shadow-lg backdrop-blur-md">
@@ -108,10 +118,21 @@ const ClientPortal = () => {
         </div>
       </header>
 
-      {/* Hero banner - dynamic per program */}
-      <div className="relative h-44 overflow-hidden">
-        <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700" key={heroImage + '-hero'} loading="lazy" width={1920} height={800} />
-        <div className="absolute inset-0 bg-gradient-to-b from-secondary/40 via-secondary/60 to-secondary/90" />
+      {/* Hero collage banner */}
+      <div className="relative h-48 overflow-hidden">
+        <div className="absolute inset-0 grid grid-cols-6 gap-0.5">
+          {realImages.map((img, i) => (
+            <div key={i} className="relative overflow-hidden">
+              <img
+                src={img}
+                alt=""
+                className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary/30 via-secondary/50 to-secondary/90" />
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="text-center">
             {client ? (
