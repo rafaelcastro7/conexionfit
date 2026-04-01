@@ -6,6 +6,7 @@ import { useClients } from '@/hooks/useClients';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { realImages } from '@/lib/realImages';
 
 const Index = () => {
   const { clients, addClient, registerAttendance, deleteClient } = useClients();
