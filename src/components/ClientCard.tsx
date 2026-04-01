@@ -3,17 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CalendarCheck, Trash2, CheckCircle2 } from 'lucide-react';
+import { CalendarCheck, Trash2, CheckCircle2, Layers } from 'lucide-react';
 
 interface Props {
   client: Client;
   onRegister: (id: string) => void;
   onDelete: (id: string) => void;
+  otherPrograms?: string[];
 }
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
-const ClientCard = ({ client, onRegister, onDelete }: Props) => {
+const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [] }: Props) => {
   const attended = client.attendance.length;
   const progress = (attended / client.totalClasses) * 100;
   const accumulated = attended * client.unitValue;
@@ -38,6 +39,18 @@ const ClientCard = ({ client, onRegister, onDelete }: Props) => {
             )}
           </div>
         </div>
+        {/* Multi-program indicator */}
+        {otherPrograms.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-2">
+            <Layers className="h-3.5 w-3.5 text-primary" />
+            <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">También en:</span>
+            {otherPrograms.map((p) => (
+              <Badge key={p} variant="secondary" className="text-[10px] font-body py-0 px-1.5">
+                {p}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Progress */}
