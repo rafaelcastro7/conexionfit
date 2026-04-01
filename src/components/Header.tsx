@@ -1,7 +1,7 @@
 import logo from '@/assets/conexion-fit-logo.png';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { UserCircle, BarChart3, Users, LogOut } from 'lucide-react';
+import { UserCircle, BarChart3, Users, LogOut, Info } from 'lucide-react';
 import { realImages } from '@/lib/realImages';
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,6 +52,11 @@ const Header = () => {
                 <UserCircle className="h-3.5 w-3.5" /> Portal
               </Button>
             </Link>
+            <Link to="/about">
+              <Button variant={pathname === '/about' ? 'default' : 'ghost'} size="sm" className="gap-1.5 text-xs">
+                <Info className="h-3.5 w-3.5" /> Acerca de
+              </Button>
+            </Link>
           </nav>
           {user && (
             <div className="flex items-center gap-2">
@@ -84,6 +89,11 @@ const Header = () => {
         <Link to="/portal" className="flex-1">
           <Button variant={pathname === '/portal' ? 'default' : 'ghost'} size="sm" className="w-full rounded-none gap-1 text-[10px]">
             <UserCircle className="h-3 w-3" /> Portal
+          </Button>
+        </Link>
+        <Link to="/about" className="flex-1">
+          <Button variant={pathname === '/about' ? 'default' : 'ghost'} size="sm" className="w-full rounded-none gap-1 text-[10px]">
+            <Info className="h-3 w-3" /> Info
           </Button>
         </Link>
       </div>

@@ -10,24 +10,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils';
 import { format, isWithinInterval, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, TrendingUp, Users, DollarSign, BarChart3, CheckCircle2, Loader2 } from 'lucide-react';
+import { CalendarIcon, TrendingUp, Users, DollarSign, BarChart3, CheckCircle2, Loader2, FileDown, FileSpreadsheet, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import { useClients } from '@/hooks/useClients';
 import { realImages } from '@/lib/realImages';
+import { exportClientsPDF, exportClientsExcel, exportBillingPDF } from '@/lib/exportUtils';
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
 const PROGRAM_COLORS = [
-  'hsl(22, 90%, 52%)',
-  'hsl(220, 15%, 25%)',
-  'hsl(142, 70%, 40%)',
-  'hsl(200, 70%, 50%)',
-  'hsl(280, 60%, 55%)',
-  'hsl(45, 90%, 50%)',
-  'hsl(350, 70%, 50%)',
-  'hsl(170, 60%, 45%)',
+  'hsl(22, 90%, 52%)', 'hsl(220, 15%, 25%)', 'hsl(142, 70%, 40%)', 'hsl(200, 70%, 50%)',
+  'hsl(280, 60%, 55%)', 'hsl(45, 90%, 50%)', 'hsl(350, 70%, 50%)', 'hsl(170, 60%, 45%)',
 ];
 
 const Dashboard = () => {
@@ -42,10 +37,7 @@ const Dashboard = () => {
       const filteredAttendance = client.attendance.filter((a) => {
         if (!dateRange?.from) return true;
         const d = parseISO(a.date);
-        return isWithinInterval(d, {
-          start: dateRange.from,
-          end: dateRange.to || dateRange.from,
-        });
+        return isWithinInterval(d, { start: dateRange.from, end: dateRange.to || dateRange.from });
       });
       return { ...client, filteredAttendance };
     });
@@ -54,9 +46,7 @@ const Dashboard = () => {
   const programStats = useMemo(() => {
     const stats: Record<string, { program: string; clients: number; totalBilled: number; totalAttendance: number; totalClasses: number }> = {};
     filteredData.forEach((c) => {
-      if (!stats[c.program]) {
-        stats[c.program] = { program: c.program, clients: 0, totalBilled: 0, totalAttendance: 0, totalClasses: 0 };
-      }
+      if (!stats[c.program]) stats[c.program] = { program: c.program, clients: 0, totalBilled: 0, totalAttendance: 0, totalClasses: 0 };
       stats[c.program].clients += 1;
       stats[c.program].totalBilled += c.filteredAttendance.length * c.unitValue;
       stats[c.program].totalAttendance += c.filteredAttendance.length;
@@ -68,11 +58,10 @@ const Dashboard = () => {
   const totalBilled = programStats.reduce((s, p) => s + p.totalBilled, 0);
   const totalAttendance = filteredData.reduce((s, c) => s + c.filteredAttendance.length, 0);
   const totalClientsActive = filteredData.filter((c) => c.filteredAttendance.length > 0).length;
+  const retentionRate = clients.length > 0 ? Math.round((totalClientsActive / clients.length) * 100) : 0;
 
   const chartData = programStats.map((p, i) => ({
-    name: p.program,
-    facturado: p.totalBilled,
-    fill: PROGRAM_COLORS[i % PROGRAM_COLORS.length],
+    name: p.program, facturado: p.totalBilled, fill: PROGRAM_COLORS[i % PROGRAM_COLORS.length],
   }));
 
   const dateLabel = dateRange?.from
@@ -103,39 +92,64 @@ const Dashboard = () => {
         </div>
       </div>
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Header row with date picker and export buttons */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h2 className="font-display text-3xl text-secondary tracking-wider">DASHBOARD</h2>
             <p className="text-sm text-muted-foreground font-body">Estadísticas de facturación y avance de clientes</p>
           </div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn('justify-start text-left font-normal font-body gap-2 min-w-[260px]')}>
-                <CalendarIcon className="h-4 w-4" />
-                {dateLabel}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar mode="range" selected={dateRange} onSelect={setDateRange} numberOfMonths={2} initialFocus className={cn('p-3 pointer-events-auto')} />
-            </PopoverContent>
-          </Popover>
+          <div className="flex flex-wrap items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn('justify-start text-left font-normal font-body gap-2 min-w-[220px]')}>
+                  <CalendarIcon className="h-4 w-4" />
+                  {dateLabel}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar mode="range" selected={dateRange} onSelect={setDateRange} numberOfMonths={2} initialFocus className={cn('p-3 pointer-events-auto')} />
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Download className="h-4 w-4" /> Exportar
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2" align="end">
+                <div className="space-y-1">
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs" onClick={() => exportBillingPDF(programStats, totalBilled, dateLabel)}>
+                    <FileDown className="h-4 w-4 text-destructive" /> Facturación PDF
+                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs" onClick={() => exportClientsPDF(clients, dateLabel)}>
+                    <FileDown className="h-4 w-4 text-destructive" /> Clientes PDF
+                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs" onClick={() => exportClientsExcel(clients, dateLabel)}>
+                    <FileSpreadsheet className="h-4 w-4 text-success" /> Clientes Excel
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Card className="transition-all hover:shadow-md">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                   <DollarSign className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider">Facturación Total</p>
-                  <p className="text-2xl font-bold font-body">{formatCurrency(totalBilled)}</p>
+                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider">Facturación</p>
+                  <p className="text-xl font-bold font-body">{formatCurrency(totalBilled)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="transition-all hover:shadow-md">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-success/10">
@@ -143,26 +157,40 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-body uppercase tracking-wider">Asistencias</p>
-                  <p className="text-2xl font-bold font-body">{totalAttendance}</p>
+                  <p className="text-xl font-bold font-body">{totalAttendance}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="transition-all hover:shadow-md">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent">
                   <Users className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider">Clientes Activos</p>
-                  <p className="text-2xl font-bold font-body">{totalClientsActive}</p>
+                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider">Activos</p>
+                  <p className="text-xl font-bold font-body">{totalClientsActive}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="transition-all hover:shadow-md">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500/10">
+                  <BarChart3 className="h-6 w-6 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider">Retención</p>
+                  <p className="text-xl font-bold font-body">{retentionRate}%</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Chart + Program summary */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           <Card className="lg:col-span-3">
             <CardHeader className="pb-2">
@@ -194,7 +222,7 @@ const Dashboard = () => {
           <div className="lg:col-span-2 space-y-3">
             <h3 className="font-display text-lg text-secondary tracking-wide">RESUMEN POR PROGRAMA</h3>
             {programStats.map((p, i) => (
-              <Card key={p.program} className="overflow-hidden">
+              <Card key={p.program} className="overflow-hidden transition-all hover:shadow-md">
                 <div className="flex items-center gap-3 p-4">
                   <div className="w-1.5 h-12 rounded-full shrink-0" style={{ backgroundColor: PROGRAM_COLORS[i % PROGRAM_COLORS.length] }} />
                   <div className="flex-1 min-w-0">
@@ -211,6 +239,7 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Client table */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="font-display text-xl text-secondary tracking-wide flex items-center gap-2">
@@ -226,9 +255,9 @@ const Dashboard = () => {
                     <TableHead className="font-body text-xs">CÉDULA</TableHead>
                     <TableHead className="font-body text-xs">PROGRAMA</TableHead>
                     <TableHead className="font-body text-xs text-center">AVANCE</TableHead>
-                    <TableHead className="font-body text-xs text-right">ASIST. PERÍODO</TableHead>
-                    <TableHead className="font-body text-xs text-right">FACTURADO PERÍODO</TableHead>
-                    <TableHead className="font-body text-xs text-right">VALOR TOTAL</TableHead>
+                    <TableHead className="font-body text-xs text-right">ASIST.</TableHead>
+                    <TableHead className="font-body text-xs text-right">FACTURADO</TableHead>
+                    <TableHead className="font-body text-xs text-right">TOTAL</TableHead>
                     <TableHead className="font-body text-xs text-center">ESTADO</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -239,7 +268,7 @@ const Dashboard = () => {
                     const periodBilled = c.filteredAttendance.length * c.unitValue;
                     const done = totalAttended >= c.totalClasses;
                     return (
-                      <TableRow key={c.id}>
+                      <TableRow key={c.id} className="hover:bg-muted/50 transition-colors">
                         <TableCell className="font-body font-medium text-sm">{c.name}</TableCell>
                         <TableCell className="font-body text-sm text-muted-foreground">{c.cedula}</TableCell>
                         <TableCell>

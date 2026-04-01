@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell, Loader2 } from 'lucide-react';
+import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell, Loader2, Info } from 'lucide-react';
 import logo from '@/assets/conexion-fit-logo.png';
 import { getProgramImage } from '@/lib/programImages';
 import { realImages } from '@/lib/realImages';
@@ -149,11 +149,18 @@ const ClientPortal = () => {
                 <p className="text-[10px] text-primary-foreground/60 font-body tracking-widest uppercase">Portal del Cliente</p>
               </div>
             </div>
-            <Link to="/login">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
-                <ArrowLeft className="h-3.5 w-3.5" /> Admin
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/about">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                  <Info className="h-3.5 w-3.5" /> Info
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                  <ArrowLeft className="h-3.5 w-3.5" /> Admin
+                </Button>
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -200,7 +207,7 @@ const ClientPortal = () => {
                   {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Buscar
                 </Button>
               </div>
-              {error && foundClients.length === 0 && <p className="text-destructive text-sm mt-2 font-body">{error}</p>}
+              {error && foundClients.length === 0 && <p className="text-destructive text-sm mt-2 font-body animate-in fade-in">{error}</p>}
             </CardContent>
           </Card>
 
@@ -221,7 +228,7 @@ const ClientPortal = () => {
 
               {client && (
                 <>
-                  <Card className={`bg-card/90 backdrop-blur-md shadow-xl border-border/50 ${completed ? 'ring-2 ring-success/40' : ''}`}>
+                  <Card className={`bg-card/90 backdrop-blur-md shadow-xl border-border/50 transition-all ${completed ? 'ring-2 ring-success/40' : ''}`}>
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div>
@@ -287,7 +294,7 @@ const ClientPortal = () => {
                       )}
 
                       {completed && (
-                        <div className="flex items-center gap-2 rounded-xl bg-success/10 p-3 text-success">
+                        <div className="flex items-center gap-2 rounded-xl bg-success/10 p-3 text-success animate-in fade-in">
                           <CheckCircle2 className="h-5 w-5" />
                           <p className="text-sm font-semibold font-body">¡Felicitaciones! Has completado todas tus clases.</p>
                         </div>
@@ -316,8 +323,8 @@ const ClientPortal = () => {
                         <Button onClick={handleRegister} className="w-full gap-2">
                           <CalendarIcon className="h-4 w-4" /> Confirmar Asistencia
                         </Button>
-                        {error && foundClients.length > 0 && <p className="text-destructive text-sm font-body">{error}</p>}
-                        {success && <p className="text-success text-sm font-semibold font-body">{success}</p>}
+                        {error && foundClients.length > 0 && <p className="text-destructive text-sm font-body animate-in fade-in">{error}</p>}
+                        {success && <p className="text-success text-sm font-semibold font-body animate-in fade-in">{success}</p>}
                       </CardContent>
                     </Card>
                   )}
@@ -326,6 +333,16 @@ const ClientPortal = () => {
             </>
           )}
         </main>
+
+        {/* Footer */}
+        <footer className="bg-secondary/80 backdrop-blur-md border-t border-border/20 py-4 mt-auto">
+          <div className="container mx-auto px-4 text-center">
+            <p className="text-primary-foreground/40 text-xs font-body">
+              © {new Date().getFullYear()} Conexión Fit 360 — 
+              <Link to="/about" className="text-primary/60 hover:text-primary ml-1 transition-colors">Acerca de</Link>
+            </p>
+          </div>
+        </footer>
       </div>
     </div>
   );

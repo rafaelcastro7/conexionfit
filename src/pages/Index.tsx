@@ -2,6 +2,7 @@ import Header from '@/components/Header';
 import StatsBar from '@/components/StatsBar';
 import ClientCard from '@/components/ClientCard';
 import AddClientDialog from '@/components/AddClientDialog';
+import ImportClientsDialog from '@/components/ImportClientsDialog';
 import { useClients } from '@/hooks/useClients';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
@@ -56,7 +57,10 @@ const Index = () => {
                 />
               </div>
               {role === 'admin' && (
-                <AddClientDialog onAdd={addClient} existingClients={clients} />
+                <div className="flex items-center gap-2">
+                  <ImportClientsDialog onImport={addClient} />
+                  <AddClientDialog onAdd={addClient} existingClients={clients} />
+                </div>
               )}
             </div>
 
