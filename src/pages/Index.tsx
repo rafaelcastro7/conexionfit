@@ -18,6 +18,13 @@ const Index = () => {
       c.program.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Group clients by cedula to show multi-program badges
+  const cedulaPrograms = clients.reduce<Record<string, string[]>>((acc, c) => {
+    if (!acc[c.cedula]) acc[c.cedula] = [];
+    acc[c.cedula].push(c.program);
+    return acc;
+  }, {});
+
   return (
     <div className="min-h-screen bg-background">
       <Header />

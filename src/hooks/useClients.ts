@@ -75,6 +75,12 @@ export function useClients() {
   }, [clients]);
 
   const addClient = (client: Omit<Client, 'id' | 'attendance'>) => {
+    // Check if client already has this same program
+    const duplicate = clients.find(
+      (c) => c.cedula === client.cedula && c.program === client.program
+    );
+    if (duplicate) return; // prevent duplicate program for same cedula
+
     const newClient: Client = {
       ...client,
       id: crypto.randomUUID(),
