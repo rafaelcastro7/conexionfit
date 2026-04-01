@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell } from 'lucide-react';
 import logo from '@/assets/conexion-fit-logo.png';
-import gymBg1 from '@/assets/gym-bg-1.jpg';
+import gymReal from '@/assets/gym-real.jpg';
 import { getProgramImage } from '@/lib/programImages';
 import { Link } from 'react-router-dom';
 

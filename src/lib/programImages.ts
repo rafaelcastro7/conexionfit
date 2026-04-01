@@ -6,7 +6,7 @@ import programYoga from '@/assets/program-yoga.jpg';
 import programSpinning from '@/assets/program-spinning.jpg';
 import programGap from '@/assets/program-gap.jpg';
 import programBoxeo from '@/assets/program-boxeo.jpg';
-import gymBg1 from '@/assets/gym-bg-1.jpg';
+import gymReal from '@/assets/gym-real.jpg';
 
 const programImages: Record<string, string> = {
   FUNCIONAL: programFuncional,
@@ -20,7 +20,7 @@ const programImages: Record<string, string> = {
 };
 
 export const getProgramImage = (program: string): string => {
-  return programImages[program.toUpperCase()] || gymBg1;
+  return programImages[program.toUpperCase()] || gymReal;
 };
 
 export default programImages;
