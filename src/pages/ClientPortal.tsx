@@ -13,6 +13,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell } from 'lucide-react';
 import logo from '@/assets/conexion-fit-logo.png';
+import gymBg1 from '@/assets/gym-bg-1.jpg';
+import gymBg2 from '@/assets/gym-bg-2.jpg';
 import { Link } from 'react-router-dom';
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
@@ -71,28 +73,45 @@ const ClientPortal = () => {
   const completed = client ? attended >= client.totalClasses : false;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b border-border shadow-sm">
+    <div className="min-h-screen flex flex-col relative">
+      {/* Background images */}
+      <div className="fixed inset-0 z-0">
+        <img src={gymBg1} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-secondary/80 backdrop-blur-sm" />
+      </div>
+      <div className="relative z-10 flex flex-col min-h-screen">
+      <header className="bg-secondary/90 border-b border-border/20 shadow-lg backdrop-blur-md">
         <div className="container mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Conexion Fit" width={48} height={48} className="rounded-lg" />
+            <img src={logo} alt="Conexion Fit" width={48} height={48} className="rounded-lg bg-card/90 p-1" />
             <div>
-              <h1 className="text-2xl text-secondary tracking-wider leading-none">CONEXION FIT</h1>
-              <p className="text-[10px] text-muted-foreground font-body tracking-widest uppercase">Portal del Cliente</p>
+              <h1 className="text-2xl text-primary-foreground tracking-wider leading-none">CONEXION FIT</h1>
+              <p className="text-[10px] text-primary-foreground/60 font-body tracking-widest uppercase">Portal del Cliente</p>
             </div>
           </div>
           <Link to="/">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
               <ArrowLeft className="h-3.5 w-3.5" /> Admin
             </Button>
           </Link>
         </div>
       </header>
 
+      {/* Hero banner with second image */}
+      <div className="relative h-40 overflow-hidden">
+        <img src={gymBg2} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" width={1920} height={1080} />
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary/60 to-secondary/90" />
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <div className="text-center">
+            <h2 className="font-display text-4xl text-primary-foreground tracking-widest">PORTAL DEL CLIENTE</h2>
+            <p className="text-primary-foreground/70 font-body text-sm mt-1">Consulta tu progreso y registra tu asistencia</p>
+          </div>
+        </div>
+      </div>
+
       <main className="flex-1 container mx-auto px-4 py-8 max-w-lg space-y-6">
         {/* Search */}
-        <Card>
+        <Card className="bg-card/90 backdrop-blur-md shadow-xl border-border/50">
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground font-body mb-3">Ingresa tu número de cédula para consultar tu estado:</p>
             <div className="flex gap-2">
@@ -114,7 +133,7 @@ const ClientPortal = () => {
         {/* Client info */}
         {client && (
           <>
-            <Card className={completed ? 'ring-2 ring-success/40' : ''}>
+            <Card className={`bg-card/90 backdrop-blur-md shadow-xl border-border/50 ${completed ? 'ring-2 ring-success/40' : ''}`}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div>
@@ -199,7 +218,7 @@ const ClientPortal = () => {
 
             {/* Register attendance */}
             {!completed && (
-              <Card>
+              <Card className="bg-card/90 backdrop-blur-md shadow-xl border-border/50">
                 <CardHeader className="pb-2">
                   <h3 className="font-display text-xl text-secondary tracking-wide">REGISTRAR ASISTENCIA</h3>
                 </CardHeader>
@@ -242,6 +261,7 @@ const ClientPortal = () => {
           </>
         )}
       </main>
+      </div>
     </div>
   );
 };
