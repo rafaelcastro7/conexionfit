@@ -16,6 +16,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import { useClients } from '@/hooks/useClients';
+import { realImages } from '@/lib/realImages';
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
