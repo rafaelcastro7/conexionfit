@@ -13,7 +13,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell } from 'lucide-react';
 import logo from '@/assets/conexion-fit-logo.png';
-import { Link } from 'react-router-dom';
+import gymBg1 from '@/assets/gym-bg-1.jpg';
+import gymBg2 from '@/assets/gym-bg-2.jpg';
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
