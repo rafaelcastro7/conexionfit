@@ -71,7 +71,7 @@ const ClientPortal = () => {
   const progress = client ? (attended / client.totalClasses) * 100 : 0;
   const accumulated = client ? attended * client.unitValue : 0;
   const completed = client ? attended >= client.totalClasses : false;
-  const heroImage = client ? getProgramImage(client.program) : gymBg1;
+  const heroImage = client ? getProgramImage(client.program) : gymReal;
 
   return (
     <div className="min-h-screen flex flex-col relative">
