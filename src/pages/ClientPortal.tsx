@@ -14,7 +14,7 @@ import { es } from 'date-fns/locale';
 import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell } from 'lucide-react';
 import logo from '@/assets/conexion-fit-logo.png';
 import gymBg1 from '@/assets/gym-bg-1.jpg';
-import gymBg2 from '@/assets/gym-bg-2.jpg';
+import { getProgramImage } from '@/lib/programImages';
 import { Link } from 'react-router-dom';
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
@@ -71,12 +71,13 @@ const ClientPortal = () => {
   const progress = client ? (attended / client.totalClasses) * 100 : 0;
   const accumulated = client ? attended * client.unitValue : 0;
   const completed = client ? attended >= client.totalClasses : false;
+  const heroImage = client ? getProgramImage(client.program) : gymBg1;
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Background images */}
-      <div className="fixed inset-0 z-0">
-        <img src={gymBg1} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      {/* Background images - changes with program */}
+      <div className="fixed inset-0 z-0 transition-all duration-700">
+        <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700" key={heroImage} />
         <div className="absolute inset-0 bg-secondary/80 backdrop-blur-sm" />
       </div>
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -97,14 +98,24 @@ const ClientPortal = () => {
         </div>
       </header>
 
-      {/* Hero banner with second image */}
-      <div className="relative h-40 overflow-hidden">
-        <img src={gymBg2} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" width={1920} height={1080} />
-        <div className="absolute inset-0 bg-gradient-to-b from-secondary/60 to-secondary/90" />
+      {/* Hero banner - dynamic per program */}
+      <div className="relative h-44 overflow-hidden">
+        <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700" key={heroImage + '-hero'} loading="lazy" width={1920} height={800} />
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary/40 via-secondary/60 to-secondary/90" />
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="text-center">
-            <h2 className="font-display text-4xl text-primary-foreground tracking-widest">PORTAL DEL CLIENTE</h2>
-            <p className="text-primary-foreground/70 font-body text-sm mt-1">Consulta tu progreso y registra tu asistencia</p>
+            {client ? (
+              <>
+                <p className="text-primary/90 font-body text-xs uppercase tracking-[0.3em] mb-1">Programa</p>
+                <h2 className="font-display text-5xl text-primary-foreground tracking-widest">{client.program}</h2>
+                <p className="text-primary-foreground/60 font-body text-sm mt-1">Bienvenido/a, {client.name}</p>
+              </>
+            ) : (
+              <>
+                <h2 className="font-display text-4xl text-primary-foreground tracking-widest">PORTAL DEL CLIENTE</h2>
+                <p className="text-primary-foreground/70 font-body text-sm mt-1">Consulta tu progreso y registra tu asistencia</p>
+              </>
+            )}
           </div>
         </div>
       </div>
