@@ -3,13 +3,15 @@ import StatsBar from '@/components/StatsBar';
 import ClientCard from '@/components/ClientCard';
 import AddClientDialog from '@/components/AddClientDialog';
 import { useClients } from '@/hooks/useClients';
+import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { realImages } from '@/lib/realImages';
 
 const Index = () => {
-  const { clients, addClient, registerAttendance, deleteClient } = useClients();
+  const { clients, loading, addClient, registerAttendance, deleteClient } = useClients();
+  const { role } = useAuth();
   const [search, setSearch] = useState('');
 
   const filtered = clients.filter(
@@ -19,7 +21,6 @@ const Index = () => {
       c.program.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Group clients by cedula to show multi-program badges
   const cedulaPrograms = clients.reduce<Record<string, string[]>>((acc, c) => {
     if (!acc[c.cedula]) acc[c.cedula] = [];
     acc[c.cedula].push(c.program);
@@ -29,7 +30,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      {/* Real gym photo banner */}
       <div className="relative h-32 overflow-hidden">
         <img src={realImages[4]} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-secondary/50 via-secondary/70 to-background" />
@@ -38,41 +38,52 @@ const Index = () => {
         </div>
       </div>
       <main className="container mx-auto px-4 py-6 space-y-6">
-        <StatsBar clients={clients} />
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nombre, cédula o programa..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-          <AddClientDialog onAdd={addClient} existingClients={clients} />
-        </div>
+        ) : (
+          <>
+            <StatsBar clients={clients} />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nombre, cédula o programa..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              {role === 'admin' && (
+                <AddClientDialog onAdd={addClient} existingClients={clients} />
+              )}
+            </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((client) => {
-            const others = cedulaPrograms[client.cedula]?.filter((p) => p !== client.program) || [];
-            return (
-              <ClientCard
-                key={client.id}
-                client={client}
-                onRegister={registerAttendance}
-                onDelete={deleteClient}
-                otherPrograms={others}
-              />
-            );
-          })}
-        </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((client) => {
+                const others = cedulaPrograms[client.cedula]?.filter((p) => p !== client.program) || [];
+                return (
+                  <ClientCard
+                    key={client.id}
+                    client={client}
+                    onRegister={registerAttendance}
+                    onDelete={deleteClient}
+                    otherPrograms={others}
+                    canRegister={role === 'admin' || role === 'instructor'}
+                    canDelete={role === 'admin'}
+                  />
+                );
+              })}
+            </div>
 
-        {filtered.length === 0 && (
-          <div className="text-center py-16 text-muted-foreground font-body">
-            <p className="text-lg">No se encontraron clientes</p>
-            <p className="text-sm">Agrega un nuevo cliente o ajusta la búsqueda</p>
-          </div>
+            {filtered.length === 0 && (
+              <div className="text-center py-16 text-muted-foreground font-body">
+                <p className="text-lg">No se encontraron clientes</p>
+                <p className="text-sm">Agrega un nuevo cliente o ajusta la búsqueda</p>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

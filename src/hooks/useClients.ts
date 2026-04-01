@@ -1,146 +1,137 @@
-import { useState, useEffect } from 'react';
-import { Client } from '@/types/client';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-const STORAGE_KEY = 'conexion-fit-clients';
+export interface AttendanceRecord {
+  id: string;
+  date: string;
+  classNumber: number;
+}
 
-const initialClients: Client[] = [
-  {
-    id: '1',
-    name: 'GIOVANNY SANCHEZ',
-    cedula: '1234',
-    program: 'FUNCIONAL',
-    totalClasses: 10,
-    unitValue: 30000,
-    totalValue: 300000,
-    attendance: [
-      { date: '2026-03-10', classNumber: 1 },
-      { date: '2026-03-12', classNumber: 2 },
-      { date: '2026-03-14', classNumber: 3 },
-      { date: '2026-03-15', classNumber: 4 },
-      { date: '2026-03-16', classNumber: 5 },
-      { date: '2026-03-19', classNumber: 6 },
-      { date: '2026-03-21', classNumber: 7 },
-      { date: '2026-03-22', classNumber: 8 },
-    ],
-  },
-  {
-    id: '2',
-    name: 'CAMILA ROMERO',
-    cedula: '5678',
-    program: 'PILATEX',
-    totalClasses: 15,
-    unitValue: 35000,
-    totalValue: 525000,
-    attendance: [
-      { date: '2026-03-10', classNumber: 1 },
-      { date: '2026-03-12', classNumber: 2 },
-      { date: '2026-03-14', classNumber: 3 },
-      { date: '2026-03-15', classNumber: 4 },
-      { date: '2026-03-19', classNumber: 5 },
-      { date: '2026-03-21', classNumber: 6 },
-      { date: '2026-03-22', classNumber: 7 },
-    ],
-  },
-  {
-    id: '3',
-    name: 'CAROLINA ROMERO',
-    cedula: '9101',
-    program: 'RUMBA',
-    totalClasses: 20,
-    unitValue: 25000,
-    totalValue: 500000,
-    attendance: [
-      { date: '2026-03-10', classNumber: 1 },
-      { date: '2026-03-12', classNumber: 2 },
-      { date: '2026-03-14', classNumber: 3 },
-      { date: '2026-03-15', classNumber: 4 },
-      { date: '2026-03-16', classNumber: 5 },
-      { date: '2026-03-19', classNumber: 6 },
-      { date: '2026-03-21', classNumber: 7 },
-      { date: '2026-03-22', classNumber: 8 },
-      { date: '2026-03-23', classNumber: 9 },
-      { date: '2026-03-24', classNumber: 10 },
-    ],
-  },
-  {
-    id: '4',
-    name: 'GIOVANNY SANCHEZ',
-    cedula: '1234',
-    program: 'YOGA',
-    totalClasses: 12,
-    unitValue: 28000,
-    totalValue: 336000,
-    attendance: [
-      { date: '2026-03-11', classNumber: 1 },
-      { date: '2026-03-13', classNumber: 2 },
-      { date: '2026-03-18', classNumber: 3 },
-    ],
-  },
-];
+export interface Client {
+  id: string;
+  name: string;
+  cedula: string;
+  program: string;
+  totalClasses: number;
+  unitValue: number;
+  totalValue: number;
+  attendance: AttendanceRecord[];
+}
 
 export function useClients() {
-  const [clients, setClients] = useState<Client[]>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : initialClients;
-  });
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchClients = useCallback(async () => {
+    setLoading(true);
+    const { data: clientsData, error: clientsError } = await supabase
+      .from('clients')
+      .select('*')
+      .order('name');
+
+    if (clientsError) {
+      toast.error('Error cargando clientes');
+      setLoading(false);
+      return;
+    }
+
+    const { data: attendanceData, error: attError } = await supabase
+      .from('attendance')
+      .select('*')
+      .order('class_number');
+
+    if (attError) {
+      toast.error('Error cargando asistencia');
+      setLoading(false);
+      return;
+    }
+
+    const mapped: Client[] = (clientsData || []).map((c: any) => ({
+      id: c.id,
+      name: c.name,
+      cedula: c.cedula,
+      program: c.program,
+      totalClasses: c.total_classes,
+      unitValue: c.unit_value,
+      totalValue: c.total_value,
+      attendance: (attendanceData || [])
+        .filter((a: any) => a.client_id === c.id)
+        .map((a: any) => ({ id: a.id, date: a.date, classNumber: a.class_number })),
+    }));
+
+    setClients(mapped);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
-  }, [clients]);
+    fetchClients();
+  }, [fetchClients]);
 
-  const addClient = (client: Omit<Client, 'id' | 'attendance'>) => {
-    // Check if client already has this same program
-    const duplicate = clients.find(
-      (c) => c.cedula === client.cedula && c.program === client.program
-    );
-    if (duplicate) return; // prevent duplicate program for same cedula
+  const addClient = async (client: Omit<Client, 'id' | 'attendance'>) => {
+    const { error } = await supabase.from('clients').insert({
+      name: client.name,
+      cedula: client.cedula,
+      program: client.program,
+      total_classes: client.totalClasses,
+      unit_value: client.unitValue,
+      total_value: client.totalValue,
+    });
 
-    const newClient: Client = {
-      ...client,
-      id: crypto.randomUUID(),
-      attendance: [],
-    };
-    setClients((prev) => [...prev, newClient]);
+    if (error) {
+      toast.error('Error al crear cliente: ' + error.message);
+      return;
+    }
+    toast.success('Cliente matriculado exitosamente');
+    await fetchClients();
   };
 
-  const registerAttendance = (clientId: string) => {
-    setClients((prev) =>
-      prev.map((c) => {
-        if (c.id !== clientId) return c;
-        if (c.attendance.length >= c.totalClasses) return c;
-        return {
-          ...c,
-          attendance: [
-            ...c.attendance,
-            {
-              date: new Date().toISOString().split('T')[0],
-              classNumber: c.attendance.length + 1,
-            },
-          ],
-        };
-      })
-    );
+  const registerAttendance = async (clientId: string) => {
+    const client = clients.find((c) => c.id === clientId);
+    if (!client || client.attendance.length >= client.totalClasses) return;
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const { error } = await supabase.from('attendance').insert({
+      client_id: clientId,
+      date: dateStr,
+      class_number: client.attendance.length + 1,
+    });
+
+    if (error) {
+      toast.error('Error al registrar asistencia');
+      return;
+    }
+    toast.success('Asistencia registrada');
+    await fetchClients();
   };
 
-  const registerAttendanceWithDate = (clientId: string, dateStr: string) => {
-    setClients((prev) =>
-      prev.map((c) => {
-        if (c.id !== clientId) return c;
-        if (c.attendance.length >= c.totalClasses) return c;
-        return {
-          ...c,
-          attendance: [
-            ...c.attendance,
-            { date: dateStr, classNumber: c.attendance.length + 1 },
-          ],
-        };
-      })
-    );
+  const registerAttendanceWithDate = async (clientId: string, dateStr: string) => {
+    const client = clients.find((c) => c.id === clientId);
+    if (!client || client.attendance.length >= client.totalClasses) return;
+
+    const { error } = await supabase.from('attendance').insert({
+      client_id: clientId,
+      date: dateStr,
+      class_number: client.attendance.length + 1,
+    });
+
+    if (error) {
+      toast.error('Error al registrar asistencia');
+      return;
+    }
+    toast.success('Asistencia registrada');
+    await fetchClients();
   };
 
-  const deleteClient = (clientId: string) => {
-    setClients((prev) => prev.filter((c) => c.id !== clientId));
+  const deleteClient = async (clientId: string) => {
+    const { error } = await supabase.from('clients').delete().eq('id', clientId);
+    if (error) {
+      toast.error('Error al eliminar cliente');
+      return;
+    }
+    toast.success('Cliente eliminado');
+    await fetchClients();
   };
 
-  return { clients, addClient, registerAttendance, registerAttendanceWithDate, deleteClient };
+  return { clients, loading, addClient, registerAttendance, registerAttendanceWithDate, deleteClient, refetch: fetchClients };
 }

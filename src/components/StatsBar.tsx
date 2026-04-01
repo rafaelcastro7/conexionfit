@@ -1,4 +1,4 @@
-import { Client } from '@/types/client';
+import { Client } from '@/hooks/useClients';
 import { Users, CalendarCheck, DollarSign, Trophy } from 'lucide-react';
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;

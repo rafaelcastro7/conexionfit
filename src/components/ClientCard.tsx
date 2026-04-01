@@ -1,4 +1,4 @@
-import { Client } from '@/types/client';
+import { Client } from '@/hooks/useClients';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,11 +10,13 @@ interface Props {
   onRegister: (id: string) => void;
   onDelete: (id: string) => void;
   otherPrograms?: string[];
+  canRegister?: boolean;
+  canDelete?: boolean;
 }
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
-const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [] }: Props) => {
+const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [], canRegister = true, canDelete = true }: Props) => {
   const attended = client.attendance.length;
   const progress = (attended / client.totalClasses) * 100;
   const accumulated = attended * client.unitValue;
@@ -39,21 +41,17 @@ const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [] }: Props)
             )}
           </div>
         </div>
-        {/* Multi-program indicator */}
         {otherPrograms.length > 0 && (
           <div className="flex items-center gap-1.5 mt-2">
             <Layers className="h-3.5 w-3.5 text-primary" />
             <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">También en:</span>
             {otherPrograms.map((p) => (
-              <Badge key={p} variant="secondary" className="text-[10px] font-body py-0 px-1.5">
-                {p}
-              </Badge>
+              <Badge key={p} variant="secondary" className="text-[10px] font-body py-0 px-1.5">{p}</Badge>
             ))}
           </div>
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Progress */}
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs font-body">
             <span className="text-muted-foreground">Asistencia</span>
@@ -62,7 +60,6 @@ const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [] }: Props)
           <Progress value={progress} className="h-2.5" />
         </div>
 
-        {/* Values */}
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-lg bg-muted/60 p-2.5">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Unitario</p>
@@ -78,7 +75,6 @@ const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [] }: Props)
           </div>
         </div>
 
-        {/* Attendance dates */}
         {attended > 0 && (
           <div className="space-y-1.5">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Fechas de asistencia</p>
@@ -95,25 +91,22 @@ const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [] }: Props)
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex gap-2 pt-1">
-          <Button
-            onClick={() => onRegister(client.id)}
-            disabled={completed}
-            className="flex-1 gap-2"
-            size="sm"
-          >
-            <CalendarCheck className="h-4 w-4" />
-            Registrar Asistencia
-          </Button>
-          <Button
-            onClick={() => onDelete(client.id)}
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {canRegister && (
+            <Button onClick={() => onRegister(client.id)} disabled={completed} className="flex-1 gap-2" size="sm">
+              <CalendarCheck className="h-4 w-4" /> Registrar Asistencia
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              onClick={() => onDelete(client.id)}
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

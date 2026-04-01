@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Client } from '@/types/client';
-import { PROGRAMS } from '@/types/client';
+import { Client } from '@/hooks/useClients';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -11,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils';
 import { format, isWithinInterval, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, TrendingUp, Users, DollarSign, BarChart3, CheckCircle2 } from 'lucide-react';
+import { CalendarIcon, TrendingUp, Users, DollarSign, BarChart3, CheckCircle2, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
@@ -21,24 +20,23 @@ import { realImages } from '@/lib/realImages';
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
 const PROGRAM_COLORS = [
-  'hsl(22, 90%, 52%)',   // primary orange
-  'hsl(220, 15%, 25%)',  // secondary dark
-  'hsl(142, 70%, 40%)',  // green
-  'hsl(200, 70%, 50%)',  // blue
-  'hsl(280, 60%, 55%)',  // purple
-  'hsl(45, 90%, 50%)',   // yellow
-  'hsl(350, 70%, 50%)',  // red
-  'hsl(170, 60%, 45%)',  // teal
+  'hsl(22, 90%, 52%)',
+  'hsl(220, 15%, 25%)',
+  'hsl(142, 70%, 40%)',
+  'hsl(200, 70%, 50%)',
+  'hsl(280, 60%, 55%)',
+  'hsl(45, 90%, 50%)',
+  'hsl(350, 70%, 50%)',
+  'hsl(170, 60%, 45%)',
 ];
 
 const Dashboard = () => {
-  const { clients } = useClients();
+  const { clients, loading } = useClients();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
 
-  // Filter attendance by date range
   const filteredData = useMemo(() => {
     return clients.map((client) => {
       const filteredAttendance = client.attendance.filter((a) => {
@@ -53,10 +51,8 @@ const Dashboard = () => {
     });
   }, [clients, dateRange]);
 
-  // Program stats
   const programStats = useMemo(() => {
     const stats: Record<string, { program: string; clients: number; totalBilled: number; totalAttendance: number; totalClasses: number }> = {};
-
     filteredData.forEach((c) => {
       if (!stats[c.program]) {
         stats[c.program] = { program: c.program, clients: 0, totalBilled: 0, totalAttendance: 0, totalClasses: 0 };
@@ -66,16 +62,13 @@ const Dashboard = () => {
       stats[c.program].totalAttendance += c.filteredAttendance.length;
       stats[c.program].totalClasses += c.totalClasses;
     });
-
     return Object.values(stats).sort((a, b) => b.totalBilled - a.totalBilled);
   }, [filteredData]);
 
-  // Totals
   const totalBilled = programStats.reduce((s, p) => s + p.totalBilled, 0);
   const totalAttendance = filteredData.reduce((s, c) => s + c.filteredAttendance.length, 0);
   const totalClientsActive = filteredData.filter((c) => c.filteredAttendance.length > 0).length;
 
-  // Chart data
   const chartData = programStats.map((p, i) => ({
     name: p.program,
     facturado: p.totalBilled,
@@ -88,10 +81,20 @@ const Dashboard = () => {
       : format(dateRange.from, "d MMM yyyy", { locale: es })
     : 'Seleccionar rango';
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      {/* Real gym photo banner */}
       <div className="relative h-32 overflow-hidden">
         <img src={realImages[2]} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-secondary/50 via-secondary/70 to-background" />
@@ -100,7 +103,6 @@ const Dashboard = () => {
         </div>
       </div>
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Title + Date filter */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h2 className="font-display text-3xl text-secondary tracking-wider">DASHBOARD</h2>
@@ -114,19 +116,11 @@ const Dashboard = () => {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-                initialFocus
-                className={cn('p-3 pointer-events-auto')}
-              />
+              <Calendar mode="range" selected={dateRange} onSelect={setDateRange} numberOfMonths={2} initialFocus className={cn('p-3 pointer-events-auto')} />
             </PopoverContent>
           </Popover>
         </div>
 
-        {/* Summary cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-6">
@@ -169,9 +163,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Chart + Program breakdown */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {/* Chart */}
           <Card className="lg:col-span-3">
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-xl text-secondary tracking-wide flex items-center gap-2">
@@ -185,10 +177,7 @@ const Dashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" />
                     <XAxis dataKey="name" tick={{ fontSize: 11, fontFamily: 'Inter' }} />
                     <YAxis tick={{ fontSize: 11, fontFamily: 'Inter' }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                    <Tooltip
-                      formatter={(value: number) => [formatCurrency(value), 'Facturado']}
-                      contentStyle={{ borderRadius: '8px', fontFamily: 'Inter', fontSize: 12 }}
-                    />
+                    <Tooltip formatter={(value: number) => [formatCurrency(value), 'Facturado']} contentStyle={{ borderRadius: '8px', fontFamily: 'Inter', fontSize: 12 }} />
                     <Bar dataKey="facturado" radius={[6, 6, 0, 0]}>
                       {chartData.map((entry, index) => (
                         <Cell key={index} fill={entry.fill} />
@@ -202,16 +191,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Program cards */}
           <div className="lg:col-span-2 space-y-3">
             <h3 className="font-display text-lg text-secondary tracking-wide">RESUMEN POR PROGRAMA</h3>
             {programStats.map((p, i) => (
               <Card key={p.program} className="overflow-hidden">
                 <div className="flex items-center gap-3 p-4">
-                  <div
-                    className="w-1.5 h-12 rounded-full shrink-0"
-                    style={{ backgroundColor: PROGRAM_COLORS[i % PROGRAM_COLORS.length] }}
-                  />
+                  <div className="w-1.5 h-12 rounded-full shrink-0" style={{ backgroundColor: PROGRAM_COLORS[i % PROGRAM_COLORS.length] }} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-body font-semibold text-sm">{p.program}</p>
@@ -223,13 +208,9 @@ const Dashboard = () => {
                 </div>
               </Card>
             ))}
-            {programStats.length === 0 && (
-              <p className="text-sm text-muted-foreground font-body text-center py-6">Sin programas activos</p>
-            )}
           </div>
         </div>
 
-        {/* Client table */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="font-display text-xl text-secondary tracking-wide flex items-center gap-2">
@@ -257,22 +238,17 @@ const Dashboard = () => {
                     const pct = (totalAttended / c.totalClasses) * 100;
                     const periodBilled = c.filteredAttendance.length * c.unitValue;
                     const done = totalAttended >= c.totalClasses;
-
                     return (
                       <TableRow key={c.id}>
                         <TableCell className="font-body font-medium text-sm">{c.name}</TableCell>
                         <TableCell className="font-body text-sm text-muted-foreground">{c.cedula}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-xs font-body border-primary/30 text-primary">
-                            {c.program}
-                          </Badge>
+                          <Badge variant="outline" className="text-xs font-body border-primary/30 text-primary">{c.program}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2 min-w-[120px]">
                             <Progress value={pct} className="h-2 flex-1" />
-                            <span className="text-xs font-body text-muted-foreground whitespace-nowrap">
-                              {totalAttended}/{c.totalClasses}
-                            </span>
+                            <span className="text-xs font-body text-muted-foreground whitespace-nowrap">{totalAttended}/{c.totalClasses}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-body text-sm">{c.filteredAttendance.length}</TableCell>
@@ -293,9 +269,6 @@ const Dashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            {filteredData.length === 0 && (
-              <p className="text-center text-muted-foreground py-8 font-body">No hay clientes registrados</p>
-            )}
           </CardContent>
         </Card>
       </main>
