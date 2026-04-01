@@ -80,7 +80,7 @@ const ClientPortal = () => {
   const progress = client ? (attended / client.totalClasses) * 100 : 0;
   const accumulated = client ? attended * client.unitValue : 0;
   const completed = client ? attended >= client.totalClasses : false;
-  const heroImage = client ? getProgramImage(client.program) : gymReal;
+  const heroImage = client ? getProgramImage(client.program) : realImages[0];
   const clientName = foundClients.length > 0 ? foundClients[0].name : '';
 
   return (
