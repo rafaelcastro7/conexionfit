@@ -73,8 +73,13 @@ const ClientPortal = () => {
   const completed = client ? attended >= client.totalClasses : false;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
+    <div className="min-h-screen flex flex-col relative">
+      {/* Background images */}
+      <div className="fixed inset-0 z-0">
+        <img src={gymBg1} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-secondary/80 backdrop-blur-sm" />
+      </div>
+      <div className="relative z-10 flex flex-col min-h-screen">
       <header className="bg-card border-b border-border shadow-sm">
         <div className="container mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
