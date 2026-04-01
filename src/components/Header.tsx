@@ -3,13 +3,20 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { UserCircle, BarChart3, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { realImages } from '@/lib/realImages';
+import { useMemo } from 'react';
 
 const Header = () => {
   const { pathname } = useLocation();
+  const bgImage = useMemo(() => realImages[Math.floor(Math.random() * realImages.length)], []);
 
   return (
-    <header className="bg-card border-b border-border shadow-sm">
-      <div className="container mx-auto flex items-center justify-between py-4 px-4">
+    <header className="relative overflow-hidden bg-card border-b border-border shadow-sm">
+      {/* Subtle real gym background */}
+      <div className="absolute inset-0 z-0">
+        <img src={bgImage} alt="" className="w-full h-full object-cover opacity-[0.07]" />
+      </div>
+      <div className="relative z-10 container mx-auto flex items-center justify-between py-4 px-4">
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Conexion Fit" width={56} height={56} className="rounded-lg" />
           <div>
