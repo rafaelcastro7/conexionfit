@@ -102,9 +102,25 @@ export function useClients() {
     );
   };
 
+  const registerAttendanceWithDate = (clientId: string, dateStr: string) => {
+    setClients((prev) =>
+      prev.map((c) => {
+        if (c.id !== clientId) return c;
+        if (c.attendance.length >= c.totalClasses) return c;
+        return {
+          ...c,
+          attendance: [
+            ...c.attendance,
+            { date: dateStr, classNumber: c.attendance.length + 1 },
+          ],
+        };
+      })
+    );
+  };
+
   const deleteClient = (clientId: string) => {
     setClients((prev) => prev.filter((c) => c.id !== clientId));
   };
 
-  return { clients, addClient, registerAttendance, deleteClient };
+  return { clients, addClient, registerAttendance, registerAttendanceWithDate, deleteClient };
 }

@@ -1,4 +1,7 @@
 import logo from '@/assets/conexion-fit-logo.png';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { UserCircle } from 'lucide-react';
 
 const Header = () => (
   <header className="bg-card border-b border-border shadow-sm">
@@ -10,6 +13,11 @@ const Header = () => (
           <p className="text-xs text-muted-foreground font-body tracking-widest uppercase">Control de Asistencia</p>
         </div>
       </div>
+      <Link to="/portal">
+        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+          <UserCircle className="h-3.5 w-3.5" /> Portal Cliente
+        </Button>
+      </Link>
     </div>
   </header>
 );
