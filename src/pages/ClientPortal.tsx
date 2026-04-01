@@ -80,22 +80,34 @@ const ClientPortal = () => {
         <div className="absolute inset-0 bg-secondary/80 backdrop-blur-sm" />
       </div>
       <div className="relative z-10 flex flex-col min-h-screen">
-      <header className="bg-card border-b border-border shadow-sm">
+      <header className="bg-secondary/90 border-b border-border/20 shadow-lg backdrop-blur-md">
         <div className="container mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Conexion Fit" width={48} height={48} className="rounded-lg" />
+            <img src={logo} alt="Conexion Fit" width={48} height={48} className="rounded-lg bg-card/90 p-1" />
             <div>
-              <h1 className="text-2xl text-secondary tracking-wider leading-none">CONEXION FIT</h1>
-              <p className="text-[10px] text-muted-foreground font-body tracking-widest uppercase">Portal del Cliente</p>
+              <h1 className="text-2xl text-primary-foreground tracking-wider leading-none">CONEXION FIT</h1>
+              <p className="text-[10px] text-primary-foreground/60 font-body tracking-widest uppercase">Portal del Cliente</p>
             </div>
           </div>
           <Link to="/">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
               <ArrowLeft className="h-3.5 w-3.5" /> Admin
             </Button>
           </Link>
         </div>
       </header>
+
+      {/* Hero banner with second image */}
+      <div className="relative h-40 overflow-hidden">
+        <img src={gymBg2} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" width={1920} height={1080} />
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary/60 to-secondary/90" />
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <div className="text-center">
+            <h2 className="font-display text-4xl text-primary-foreground tracking-widest">PORTAL DEL CLIENTE</h2>
+            <p className="text-primary-foreground/70 font-body text-sm mt-1">Consulta tu progreso y registra tu asistencia</p>
+          </div>
+        </div>
+      </div>
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-lg space-y-6">
         {/* Search */}
