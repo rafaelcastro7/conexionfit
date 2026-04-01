@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import ClientPortal from "./pages/ClientPortal";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -47,6 +48,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/portal" element={<ClientPortal />} />
+      <Route path="/about" element={<About />} />
       <Route path="/" element={
         <ProtectedRoute allowedRoles={['admin', 'instructor']}>
           <Index />
