@@ -6,6 +6,7 @@ import { useClients } from '@/hooks/useClients';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { realImages } from '@/lib/realImages';
 
 const Index = () => {
   const { clients, addClient, registerAttendance, deleteClient } = useClients();
@@ -28,6 +29,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      {/* Real gym photo banner */}
+      <div className="relative h-32 overflow-hidden">
+        <img src={realImages[4]} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary/50 via-secondary/70 to-background" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="font-display text-2xl text-primary-foreground tracking-[0.3em] opacity-80">GESTIÓN DE CLIENTES</p>
+        </div>
+      </div>
       <main className="container mx-auto px-4 py-6 space-y-6">
         <StatsBar clients={clients} />
 
