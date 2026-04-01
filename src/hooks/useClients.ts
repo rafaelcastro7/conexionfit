@@ -62,6 +62,20 @@ const initialClients: Client[] = [
       { date: '2026-03-24', classNumber: 10 },
     ],
   },
+  {
+    id: '4',
+    name: 'GIOVANNY SANCHEZ',
+    cedula: '1234',
+    program: 'YOGA',
+    totalClasses: 12,
+    unitValue: 28000,
+    totalValue: 336000,
+    attendance: [
+      { date: '2026-03-11', classNumber: 1 },
+      { date: '2026-03-13', classNumber: 2 },
+      { date: '2026-03-18', classNumber: 3 },
+    ],
+  },
 ];
 
 export function useClients() {
