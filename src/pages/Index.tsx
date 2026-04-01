@@ -54,14 +54,18 @@ const Index = () => {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((client) => (
-            <ClientCard
-              key={client.id}
-              client={client}
-              onRegister={registerAttendance}
-              onDelete={deleteClient}
-            />
-          ))}
+          {filtered.map((client) => {
+            const others = cedulaPrograms[client.cedula]?.filter((p) => p !== client.program) || [];
+            return (
+              <ClientCard
+                key={client.id}
+                client={client}
+                onRegister={registerAttendance}
+                onDelete={deleteClient}
+                otherPrograms={others}
+              />
+            );
+          })}
         </div>
 
         {filtered.length === 0 && (
