@@ -62,6 +62,20 @@ const initialClients: Client[] = [
       { date: '2026-03-24', classNumber: 10 },
     ],
   },
+  {
+    id: '4',
+    name: 'GIOVANNY SANCHEZ',
+    cedula: '1234',
+    program: 'YOGA',
+    totalClasses: 12,
+    unitValue: 28000,
+    totalValue: 336000,
+    attendance: [
+      { date: '2026-03-11', classNumber: 1 },
+      { date: '2026-03-13', classNumber: 2 },
+      { date: '2026-03-18', classNumber: 3 },
+    ],
+  },
 ];
 
 export function useClients() {
@@ -75,6 +89,12 @@ export function useClients() {
   }, [clients]);
 
   const addClient = (client: Omit<Client, 'id' | 'attendance'>) => {
+    // Check if client already has this same program
+    const duplicate = clients.find(
+      (c) => c.cedula === client.cedula && c.program === client.program
+    );
+    if (duplicate) return; // prevent duplicate program for same cedula
+
     const newClient: Client = {
       ...client,
       id: crypto.randomUUID(),

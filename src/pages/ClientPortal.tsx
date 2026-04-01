@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -22,22 +23,27 @@ const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 const ClientPortal = () => {
   const { clients, registerAttendanceWithDate } = useClients();
   const [cedula, setCedula] = useState('');
-  const [client, setClient] = useState<Client | null>(null);
+  const [foundClients, setFoundClients] = useState<Client[]>([]);
+  const [activeProgram, setActiveProgram] = useState('');
   const [error, setError] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [success, setSuccess] = useState('');
 
   const handleSearch = () => {
-    const found = clients.find((c) => c.cedula === cedula.trim());
-    if (found) {
-      setClient(found);
+    const found = clients.filter((c) => c.cedula === cedula.trim());
+    if (found.length > 0) {
+      setFoundClients(found);
+      setActiveProgram(found[0].id);
       setError('');
     } else {
-      setClient(null);
+      setFoundClients([]);
+      setActiveProgram('');
       setError('No se encontró un cliente con esta cédula.');
     }
     setSuccess('');
   };
+
+  const client = foundClients.find((c) => c.id === activeProgram) || null;
 
   const handleRegister = () => {
     if (!client || !date) return;
@@ -51,17 +57,20 @@ const ClientPortal = () => {
     }
 
     registerAttendanceWithDate(client.id, dateStr);
-    // refresh client
-    const updated = clients.find((c) => c.id === client.id);
-    if (updated) {
-      setClient({
-        ...updated,
-        attendance: [
-          ...updated.attendance,
-          { date: dateStr, classNumber: updated.attendance.length + 1 },
-        ],
-      });
-    }
+    // refresh local state
+    setFoundClients((prev) =>
+      prev.map((c) =>
+        c.id === client.id
+          ? {
+              ...c,
+              attendance: [
+                ...c.attendance,
+                { date: dateStr, classNumber: c.attendance.length + 1 },
+              ],
+            }
+          : c
+      )
+    );
     setSuccess(`¡Asistencia registrada para el ${format(date, "d 'de' MMMM, yyyy", { locale: es })}!`);
     setError('');
   };
@@ -72,6 +81,7 @@ const ClientPortal = () => {
   const accumulated = client ? attended * client.unitValue : 0;
   const completed = client ? attended >= client.totalClasses : false;
   const heroImage = client ? getProgramImage(client.program) : gymReal;
+  const clientName = foundClients.length > 0 ? foundClients[0].name : '';
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -108,7 +118,7 @@ const ClientPortal = () => {
               <>
                 <p className="text-primary/90 font-body text-xs uppercase tracking-[0.3em] mb-1">Programa</p>
                 <h2 className="font-display text-5xl text-primary-foreground tracking-widest">{client.program}</h2>
-                <p className="text-primary-foreground/60 font-body text-sm mt-1">Bienvenido/a, {client.name}</p>
+                <p className="text-primary-foreground/60 font-body text-sm mt-1">Bienvenido/a, {clientName}</p>
               </>
             ) : (
               <>
@@ -137,137 +147,155 @@ const ClientPortal = () => {
                 <Search className="h-4 w-4" /> Buscar
               </Button>
             </div>
-            {error && !client && <p className="text-destructive text-sm mt-2 font-body">{error}</p>}
+            {error && foundClients.length === 0 && <p className="text-destructive text-sm mt-2 font-body">{error}</p>}
           </CardContent>
         </Card>
 
-        {/* Client info */}
-        {client && (
+        {/* Client info with program tabs */}
+        {foundClients.length > 0 && (
           <>
-            <Card className={`bg-card/90 backdrop-blur-md shadow-xl border-border/50 ${completed ? 'ring-2 ring-success/40' : ''}`}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="font-display text-2xl text-secondary tracking-wide">{client.name}</h2>
-                    <p className="text-xs text-muted-foreground font-body">CC: {client.cedula}</p>
-                  </div>
-                  <Badge variant="outline" className="border-primary/30 text-primary font-body text-xs">
-                    {client.program}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Progress */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-body">
-                    <span className="text-muted-foreground">Progreso</span>
-                    <span className="font-semibold">{attended} / {client.totalClasses} clases</span>
-                  </div>
-                  <Progress value={progress} className="h-3" />
-                </div>
+            {/* Program tabs - only show if multiple programs */}
+            {foundClients.length > 1 && (
+              <Tabs value={activeProgram} onValueChange={(v) => { setActiveProgram(v); setSuccess(''); setError(''); }}>
+                <TabsList className="w-full grid" style={{ gridTemplateColumns: `repeat(${foundClients.length}, 1fr)` }}>
+                  {foundClients.map((c) => (
+                    <TabsTrigger key={c.id} value={c.id} className="text-xs font-body gap-1.5">
+                      <Dumbbell className="h-3 w-3" />
+                      {c.program}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            )}
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-3 rounded-xl bg-accent p-3">
-                    <CheckCircle2 className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="text-[10px] text-accent-foreground uppercase tracking-wider font-body">Tomadas</p>
-                      <p className="text-xl font-bold font-body text-accent-foreground">{attended}</p>
+            {client && (
+              <>
+                <Card className={`bg-card/90 backdrop-blur-md shadow-xl border-border/50 ${completed ? 'ring-2 ring-success/40' : ''}`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h2 className="font-display text-2xl text-secondary tracking-wide">{clientName}</h2>
+                        <p className="text-xs text-muted-foreground font-body">CC: {client.cedula}</p>
+                      </div>
+                      <Badge variant="outline" className="border-primary/30 text-primary font-body text-xs">
+                        {client.program}
+                      </Badge>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
-                    <Clock className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Pendientes</p>
-                      <p className="text-xl font-bold font-body">{remaining}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Progress */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-body">
+                        <span className="text-muted-foreground">Progreso</span>
+                        <span className="font-semibold">{attended} / {client.totalClasses} clases</span>
+                      </div>
+                      <Progress value={progress} className="h-3" />
                     </div>
-                  </div>
-                </div>
 
-                {/* Values */}
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="rounded-lg bg-muted/60 p-2.5">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Unitario</p>
-                    <p className="text-sm font-semibold font-body">{formatCurrency(client.unitValue)}</p>
-                  </div>
-                  <div className="rounded-lg bg-accent p-2.5">
-                    <p className="text-[10px] text-accent-foreground uppercase tracking-wider font-body">Acumulado</p>
-                    <p className="text-sm font-semibold font-body text-accent-foreground">{formatCurrency(accumulated)}</p>
-                  </div>
-                  <div className="rounded-lg bg-secondary/10 p-2.5">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Total</p>
-                    <p className="text-sm font-semibold font-body">{formatCurrency(client.totalValue)}</p>
-                  </div>
-                </div>
-
-                {/* Attendance history */}
-                {attended > 0 && (
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Historial de asistencia</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {client.attendance.map((a) => (
-                        <span
-                          key={a.classNumber}
-                          className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-body text-muted-foreground"
-                        >
-                          <Dumbbell className="h-3 w-3 text-primary" />
-                          Clase {a.classNumber} — {new Date(a.date + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
-                        </span>
-                      ))}
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center gap-3 rounded-xl bg-accent p-3">
+                        <CheckCircle2 className="h-8 w-8 text-primary" />
+                        <div>
+                          <p className="text-[10px] text-accent-foreground uppercase tracking-wider font-body">Tomadas</p>
+                          <p className="text-xl font-bold font-body text-accent-foreground">{attended}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
+                        <Clock className="h-8 w-8 text-muted-foreground" />
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Pendientes</p>
+                          <p className="text-xl font-bold font-body">{remaining}</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {completed && (
-                  <div className="flex items-center gap-2 rounded-xl bg-success/10 p-3 text-success">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <p className="text-sm font-semibold font-body">¡Felicitaciones! Has completado todas tus clases.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    {/* Values */}
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-muted/60 p-2.5">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Unitario</p>
+                        <p className="text-sm font-semibold font-body">{formatCurrency(client.unitValue)}</p>
+                      </div>
+                      <div className="rounded-lg bg-accent p-2.5">
+                        <p className="text-[10px] text-accent-foreground uppercase tracking-wider font-body">Acumulado</p>
+                        <p className="text-sm font-semibold font-body text-accent-foreground">{formatCurrency(accumulated)}</p>
+                      </div>
+                      <div className="rounded-lg bg-secondary/10 p-2.5">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Total</p>
+                        <p className="text-sm font-semibold font-body">{formatCurrency(client.totalValue)}</p>
+                      </div>
+                    </div>
 
-            {/* Register attendance */}
-            {!completed && (
-              <Card className="bg-card/90 backdrop-blur-md shadow-xl border-border/50">
-                <CardHeader className="pb-2">
-                  <h3 className="font-display text-xl text-secondary tracking-wide">REGISTRAR ASISTENCIA</h3>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground font-body">Selecciona la fecha de tu clase:</p>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full justify-start text-left font-normal font-body',
-                          !date && 'text-muted-foreground'
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "d 'de' MMMM, yyyy", { locale: es }) : 'Seleccionar fecha'}
+                    {/* Attendance history */}
+                    {attended > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Historial de asistencia</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {client.attendance.map((a) => (
+                            <span
+                              key={a.classNumber}
+                              className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-body text-muted-foreground"
+                            >
+                              <Dumbbell className="h-3 w-3 text-primary" />
+                              Clase {a.classNumber} — {new Date(a.date + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {completed && (
+                      <div className="flex items-center gap-2 rounded-xl bg-success/10 p-3 text-success">
+                        <CheckCircle2 className="h-5 w-5" />
+                        <p className="text-sm font-semibold font-body">¡Felicitaciones! Has completado todas tus clases.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Register attendance */}
+                {!completed && (
+                  <Card className="bg-card/90 backdrop-blur-md shadow-xl border-border/50">
+                    <CardHeader className="pb-2">
+                      <h3 className="font-display text-xl text-secondary tracking-wide">REGISTRAR ASISTENCIA</h3>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-sm text-muted-foreground font-body">Selecciona la fecha de tu clase:</p>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              'w-full justify-start text-left font-normal font-body',
+                              !date && 'text-muted-foreground'
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, "d 'de' MMMM, yyyy", { locale: es }) : 'Seleccionar fecha'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={setDate}
+                            initialFocus
+                            className={cn('p-3 pointer-events-auto')}
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <Button onClick={handleRegister} className="w-full gap-2">
+                        <CalendarIcon className="h-4 w-4" />
+                        Confirmar Asistencia
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                        className={cn('p-3 pointer-events-auto')}
-                      />
-                    </PopoverContent>
-                  </Popover>
 
-                  <Button onClick={handleRegister} className="w-full gap-2">
-                    <CalendarIcon className="h-4 w-4" />
-                    Confirmar Asistencia
-                  </Button>
-
-                  {error && client && <p className="text-destructive text-sm font-body">{error}</p>}
-                  {success && <p className="text-success text-sm font-semibold font-body">{success}</p>}
-                </CardContent>
-              </Card>
+                      {error && foundClients.length > 0 && <p className="text-destructive text-sm font-body">{error}</p>}
+                      {success && <p className="text-success text-sm font-semibold font-body">{success}</p>}
+                    </CardContent>
+                  </Card>
+                )}
+              </>
             )}
           </>
         )}
