@@ -82,6 +82,48 @@ export type Database = {
         }
         Relationships: []
       }
+      group_classes: {
+        Row: {
+          class_date: string
+          created_at: string
+          description: string | null
+          end_time: string
+          id: string
+          instructor: string
+          max_capacity: number
+          program: string
+          start_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_date: string
+          created_at?: string
+          description?: string | null
+          end_time: string
+          id?: string
+          instructor?: string
+          max_capacity?: number
+          program: string
+          start_time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_date?: string
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          instructor?: string
+          max_capacity?: number
+          program?: string
+          start_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           cedula: string | null
@@ -109,6 +151,41 @@ export type Database = {
         }
         Relationships: []
       }
+      reservations: {
+        Row: {
+          class_id: string
+          client_cedula: string
+          client_name: string
+          created_at: string
+          id: string
+          status: string
+        }
+        Insert: {
+          class_id: string
+          client_cedula: string
+          client_name: string
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          class_id?: string
+          client_cedula?: string
+          client_name?: string
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "group_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -126,6 +203,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      waitlist: {
+        Row: {
+          class_id: string
+          client_cedula: string
+          client_name: string
+          created_at: string
+          id: string
+          position: number
+        }
+        Insert: {
+          class_id: string
+          client_cedula: string
+          client_name: string
+          created_at?: string
+          id?: string
+          position: number
+        }
+        Update: {
+          class_id?: string
+          client_cedula?: string
+          client_name?: string
+          created_at?: string
+          id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "group_classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
