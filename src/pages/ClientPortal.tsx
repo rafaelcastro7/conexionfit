@@ -329,6 +329,9 @@ const ClientPortal = () => {
                       </CardContent>
                     </Card>
                   )}
+
+                  {/* Class Calendar */}
+                  <ClassCalendar clientCedula={client.cedula} clientName={clientName} />
                 </>
               )}
             </>
