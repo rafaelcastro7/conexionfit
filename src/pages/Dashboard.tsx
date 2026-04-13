@@ -17,6 +17,7 @@ import Header from '@/components/Header';
 import { useClients } from '@/hooks/useClients';
 import { realImages } from '@/lib/realImages';
 import { exportClientsPDF, exportClientsExcel, exportBillingPDF } from '@/lib/exportUtils';
+import GroupClassManager from '@/components/admin/GroupClassManager';
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
@@ -238,6 +239,9 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
+
+        {/* Group Classes Admin */}
+        <GroupClassManager />
 
         {/* Client table */}
         <Card>
