@@ -13,8 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell } from 'lucide-react';
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell, ListChecks } from 'lucide-react';
 import { toast } from 'sonner';
+import ReservationManager from './ReservationManager';
 
 interface GroupClass {
   id: string;
@@ -49,6 +50,7 @@ const GroupClassManager = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [reservationCounts, setReservationCounts] = useState<Record<string, number>>({});
+  const [reservationClassId, setReservationClassId] = useState<string | null>(null);
 
   const fetchClasses = async () => {
     setLoading(true);
@@ -200,6 +202,9 @@ const GroupClassManager = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Ver reservas" onClick={() => setReservationClassId(gc.id)}>
+                            <ListChecks className="h-3.5 w-3.5 text-primary" />
+                          </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(gc)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
@@ -303,6 +308,23 @@ const GroupClassManager = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reservation Manager */}
+      {reservationClassId && (() => {
+        const gc = classes.find(c => c.id === reservationClassId);
+        if (!gc) return null;
+        return (
+          <ReservationManager
+            classId={gc.id}
+            classTitle={gc.title}
+            classDate={gc.class_date}
+            maxCapacity={gc.max_capacity}
+            open={true}
+            onOpenChange={(o) => { if (!o) setReservationClassId(null); }}
+            onReservationChange={fetchClasses}
+          />
+        );
+      })()}
     </Card>
   );
 };
