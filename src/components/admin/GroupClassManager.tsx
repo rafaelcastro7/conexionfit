@@ -308,6 +308,23 @@ const GroupClassManager = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reservation Manager */}
+      {reservationClassId && (() => {
+        const gc = classes.find(c => c.id === reservationClassId);
+        if (!gc) return null;
+        return (
+          <ReservationManager
+            classId={gc.id}
+            classTitle={gc.title}
+            classDate={gc.class_date}
+            maxCapacity={gc.max_capacity}
+            open={true}
+            onOpenChange={(o) => { if (!o) setReservationClassId(null); }}
+            onReservationChange={fetchClasses}
+          />
+        );
+      })()}
     </Card>
   );
 };
