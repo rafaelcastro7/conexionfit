@@ -50,6 +50,7 @@ const GroupClassManager = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [reservationCounts, setReservationCounts] = useState<Record<string, number>>({});
+  const [reservationClassId, setReservationClassId] = useState<string | null>(null);
 
   const fetchClasses = async () => {
     setLoading(true);
