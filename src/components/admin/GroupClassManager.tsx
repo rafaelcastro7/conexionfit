@@ -13,8 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell } from 'lucide-react';
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell, ListChecks } from 'lucide-react';
 import { toast } from 'sonner';
+import ReservationManager from './ReservationManager';
 
 interface GroupClass {
   id: string;
