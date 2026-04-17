@@ -49,13 +49,9 @@ const ClassCalendar = ({ clientCedula, clientName }: ClassCalendarProps) => {
 
   const fetchClasses = async () => {
     setLoading(true);
-    // Public-safe view (no checkin_token exposed)
-    const { data: classesData } = await supabase
-      .from('group_classes_public' as any)
-      .select('*')
-      .gte('class_date', format(new Date(), 'yyyy-MM-dd'))
-      .order('class_date')
-      .order('start_time');
+    const { data: classesData } = await supabase.rpc('list_public_classes', {
+      _from: format(new Date(), 'yyyy-MM-dd'),
+    });
 
     if (!classesData) { setLoading(false); return; }
 
