@@ -84,6 +84,7 @@ export type Database = {
       }
       group_classes: {
         Row: {
+          checkin_token: string
           class_date: string
           created_at: string
           description: string | null
@@ -99,6 +100,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          checkin_token?: string
           class_date: string
           created_at?: string
           description?: string | null
@@ -114,6 +116,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          checkin_token?: string
           class_date?: string
           created_at?: string
           description?: string | null

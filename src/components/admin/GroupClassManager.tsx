@@ -13,10 +13,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell, ListChecks, Repeat } from 'lucide-react';
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell, ListChecks, Repeat, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import ReservationManager from './ReservationManager';
+import ClassQRDialog from './ClassQRDialog';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface GroupClass {
   id: string;
@@ -30,6 +32,7 @@ interface GroupClass {
   max_capacity: number;
   is_recurring?: boolean;
   recurrence_group_id?: string | null;
+  checkin_token?: string;
 }
 
 const PROGRAMS = ['FUNCIONAL', 'YOGA', 'PILATEX', 'RUMBA', 'SPINNING', 'BOXEO', 'ZUMBA'];
@@ -53,9 +56,12 @@ const GroupClassManager = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingClass, setEditingClass] = useState<GroupClass | null>(null);
+  const [applyToSeries, setApplyToSeries] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [reservationCounts, setReservationCounts] = useState<Record<string, number>>({});
   const [reservationClassId, setReservationClassId] = useState<string | null>(null);
+  const [qrClass, setQrClass] = useState<GroupClass | null>(null);
 
   const fetchClasses = async () => {
     setLoading(true);
@@ -86,12 +92,16 @@ const GroupClassManager = () => {
 
   const openCreate = () => {
     setEditingId(null);
+    setEditingClass(null);
+    setApplyToSeries(false);
     setForm(emptyForm);
     setDialogOpen(true);
   };
 
   const openEdit = (gc: GroupClass) => {
     setEditingId(gc.id);
+    setEditingClass(gc);
+    setApplyToSeries(false);
     setForm({
       title: gc.title,
       program: gc.program,
@@ -125,12 +135,31 @@ const GroupClassManager = () => {
     };
 
     if (editingId) {
-      const { error } = await supabase
-        .from('group_classes')
-        .update({ ...basePayload, class_date: form.class_date })
-        .eq('id', editingId);
-      if (error) toast.error('Error al actualizar');
-      else toast.success('Clase actualizada');
+      // If editing a recurring class with "apply to series" → update all future occurrences
+      if (applyToSeries && editingClass?.recurrence_group_id) {
+        const { error } = await supabase
+          .from('group_classes')
+          .update({
+            title: form.title,
+            program: form.program,
+            instructor: form.instructor,
+            description: form.description || null,
+            start_time: form.start_time,
+            end_time: form.end_time,
+            max_capacity: form.max_capacity,
+          })
+          .eq('recurrence_group_id', editingClass.recurrence_group_id)
+          .gte('class_date', editingClass.class_date);
+        if (error) toast.error('Error al actualizar la serie');
+        else toast.success('Serie actualizada (clases futuras)');
+      } else {
+        const { error } = await supabase
+          .from('group_classes')
+          .update({ ...basePayload, class_date: form.class_date })
+          .eq('id', editingId);
+        if (error) toast.error('Error al actualizar');
+        else toast.success('Clase actualizada');
+      }
     } else if (form.is_recurring && form.recurrence_weeks > 1) {
       // Generate N weekly occurrences
       const groupId = crypto.randomUUID();
@@ -253,10 +282,13 @@ const GroupClassManager = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Generar QR de check-in" onClick={() => setQrClass(gc)}>
+                            <QrCode className="h-3.5 w-3.5 text-primary" />
+                          </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" title="Ver reservas" onClick={() => setReservationClassId(gc.id)}>
                             <ListChecks className="h-3.5 w-3.5 text-primary" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(gc)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar" onClick={() => openEdit(gc)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <AlertDialog>
@@ -389,6 +421,27 @@ const GroupClassManager = () => {
                 )}
               </div>
             )}
+
+            {editingId && editingClass?.recurrence_group_id && (
+              <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="apply-series"
+                    checked={applyToSeries}
+                    onCheckedChange={(v) => setApplyToSeries(v === true)}
+                    className="mt-0.5"
+                  />
+                  <div className="space-y-0.5">
+                    <Label htmlFor="apply-series" className="font-body text-xs flex items-center gap-1.5 cursor-pointer">
+                      <Repeat className="h-3.5 w-3.5 text-primary" /> Aplicar a toda la serie futura
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground font-body leading-snug">
+                      Cambia título, programa, instructor, horario, cupo y descripción en esta clase y en todas las próximas ocurrencias de la serie. La fecha individual no se modifica.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -416,6 +469,17 @@ const GroupClassManager = () => {
           />
         );
       })()}
+      {qrClass && qrClass.checkin_token && (
+        <ClassQRDialog
+          open={true}
+          onOpenChange={(o) => { if (!o) setQrClass(null); }}
+          classTitle={qrClass.title}
+          classDate={qrClass.class_date}
+          startTime={qrClass.start_time}
+          endTime={qrClass.end_time}
+          checkinToken={qrClass.checkin_token}
+        />
+      )}
     </Card>
   );
 };

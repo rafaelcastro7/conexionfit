@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
+import CheckIn from "./pages/CheckIn";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const AppRoutes = () => {
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/portal" element={<ClientPortal />} />
       <Route path="/about" element={<About />} />
+      <Route path="/checkin/:token" element={<CheckIn />} />
       <Route path="/" element={
         <ProtectedRoute allowedRoles={['admin', 'instructor']}>
           <Index />
