@@ -282,10 +282,13 @@ const GroupClassManager = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Generar QR de check-in" onClick={() => setQrClass(gc)}>
+                            <QrCode className="h-3.5 w-3.5 text-primary" />
+                          </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" title="Ver reservas" onClick={() => setReservationClassId(gc.id)}>
                             <ListChecks className="h-3.5 w-3.5 text-primary" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(gc)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar" onClick={() => openEdit(gc)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <AlertDialog>
