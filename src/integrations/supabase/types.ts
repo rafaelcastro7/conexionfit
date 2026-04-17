@@ -193,13 +193,6 @@ export type Database = {
             referencedRelation: "group_classes"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "reservations_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "group_classes_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       user_roles: {
@@ -253,65 +246,11 @@ export type Database = {
             referencedRelation: "group_classes"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "waitlist_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "group_classes_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
     }
     Views: {
-      group_classes_public: {
-        Row: {
-          class_date: string | null
-          created_at: string | null
-          description: string | null
-          end_time: string | null
-          id: string | null
-          instructor: string | null
-          is_recurring: boolean | null
-          max_capacity: number | null
-          program: string | null
-          recurrence_group_id: string | null
-          start_time: string | null
-          title: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          class_date?: string | null
-          created_at?: string | null
-          description?: string | null
-          end_time?: string | null
-          id?: string | null
-          instructor?: string | null
-          is_recurring?: boolean | null
-          max_capacity?: number | null
-          program?: string | null
-          recurrence_group_id?: string | null
-          start_time?: string | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          class_date?: string | null
-          created_at?: string | null
-          description?: string | null
-          end_time?: string | null
-          id?: string | null
-          instructor?: string | null
-          is_recurring?: boolean | null
-          max_capacity?: number | null
-          program?: string | null
-          recurrence_group_id?: string | null
-          start_time?: string | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       checkin_via_qr: {
@@ -356,6 +295,20 @@ export type Database = {
           unit_value: number
         }[]
       }
+      get_public_class: {
+        Args: { _id: string }
+        Returns: {
+          class_date: string
+          description: string
+          end_time: string
+          id: string
+          instructor: string
+          max_capacity: number
+          program: string
+          start_time: string
+          title: string
+        }[]
+      }
       get_reservations_by_cedula: {
         Args: { _cedula: string }
         Returns: {
@@ -389,6 +342,22 @@ export type Database = {
       join_waitlist: {
         Args: { _cedula: string; _class_id: string }
         Returns: string
+      }
+      list_public_classes: {
+        Args: { _from?: string }
+        Returns: {
+          class_date: string
+          description: string
+          end_time: string
+          id: string
+          instructor: string
+          is_recurring: boolean
+          max_capacity: number
+          program: string
+          recurrence_group_id: string
+          start_time: string
+          title: string
+        }[]
       }
     }
     Enums: {
