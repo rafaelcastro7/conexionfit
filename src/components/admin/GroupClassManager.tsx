@@ -421,6 +421,27 @@ const GroupClassManager = () => {
                 )}
               </div>
             )}
+
+            {editingId && editingClass?.recurrence_group_id && (
+              <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="apply-series"
+                    checked={applyToSeries}
+                    onCheckedChange={(v) => setApplyToSeries(v === true)}
+                    className="mt-0.5"
+                  />
+                  <div className="space-y-0.5">
+                    <Label htmlFor="apply-series" className="font-body text-xs flex items-center gap-1.5 cursor-pointer">
+                      <Repeat className="h-3.5 w-3.5 text-primary" /> Aplicar a toda la serie futura
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground font-body leading-snug">
+                      Cambia título, programa, instructor, horario, cupo y descripción en esta clase y en todas las próximas ocurrencias de la serie. La fecha individual no se modifica.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -448,6 +469,17 @@ const GroupClassManager = () => {
           />
         );
       })()}
+      {qrClass && qrClass.checkin_token && (
+        <ClassQRDialog
+          open={true}
+          onOpenChange={(o) => { if (!o) setQrClass(null); }}
+          classTitle={qrClass.title}
+          classDate={qrClass.class_date}
+          startTime={qrClass.start_time}
+          endTime={qrClass.end_time}
+          checkinToken={qrClass.checkin_token}
+        />
+      )}
     </Card>
   );
 };
