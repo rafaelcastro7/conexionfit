@@ -11,8 +11,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell, Loader2, Info, CalendarDays } from 'lucide-react';
+import { CalendarIcon, Search, CheckCircle2, Clock, ArrowLeft, Dumbbell, Loader2, Info, CalendarDays, ScanLine } from 'lucide-react';
 import ClassCalendar from '@/components/portal/ClassCalendar';
+import GamificationCard from '@/components/portal/GamificationCard';
+import SmartAlerts from '@/components/portal/SmartAlerts';
 import logo from '@/assets/conexion-fit-logo.png';
 import { getProgramImage } from '@/lib/programImages';
 import { realImages } from '@/lib/realImages';
@@ -151,6 +153,11 @@ const ClientPortal = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Link to="/scanner">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                  <ScanLine className="h-3.5 w-3.5" /> Escáner
+                </Button>
+              </Link>
               <Link to="/about">
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
                   <Info className="h-3.5 w-3.5" /> Info
@@ -229,6 +236,12 @@ const ClientPortal = () => {
 
               {client && (
                 <>
+                  <SmartAlerts
+                    clientCedula={client.cedula}
+                    attendance={client.attendance}
+                    totalClasses={client.totalClasses}
+                  />
+
                   <Card className={`bg-card/90 backdrop-blur-md shadow-xl border-border/50 transition-all ${completed ? 'ring-2 ring-success/40' : ''}`}>
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
@@ -302,6 +315,8 @@ const ClientPortal = () => {
                       )}
                     </CardContent>
                   </Card>
+
+                  <GamificationCard attendance={client.attendance} totalClasses={client.totalClasses} />
 
                   {!completed && (
                     <Card className="bg-card/90 backdrop-blur-md shadow-xl border-border/50">
