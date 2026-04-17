@@ -226,7 +226,14 @@ const GroupClassManager = () => {
                   const reserved = reservationCounts[gc.id] || 0;
                   return (
                     <TableRow key={gc.id} className="hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-body font-medium text-sm">{gc.title}</TableCell>
+                      <TableCell className="font-body font-medium text-sm">
+                        <div className="flex items-center gap-1.5">
+                          {gc.title}
+                          {gc.recurrence_group_id && (
+                            <Repeat className="h-3 w-3 text-primary" aria-label="Clase recurrente" />
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-xs font-body border-primary/30 text-primary">
                           {gc.program}
@@ -262,13 +269,22 @@ const GroupClassManager = () => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>¿Eliminar clase?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Se eliminará "{gc.title}" y todas sus reservas asociadas. Esta acción no se puede deshacer.
+                                  Se eliminará "{gc.title}" del {format(new Date(gc.class_date + 'T12:00:00'), "d MMM yyyy", { locale: es })} y sus reservas asociadas.
+                                  {gc.recurrence_group_id && ' Esta clase es parte de una serie recurrente.'}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
-                              <AlertDialogFooter>
+                              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                {gc.recurrence_group_id && (
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteSeries(gc.recurrence_group_id!, gc.class_date)}
+                                    className="bg-destructive/80 text-destructive-foreground hover:bg-destructive"
+                                  >
+                                    Eliminar serie futura
+                                  </AlertDialogAction>
+                                )}
                                 <AlertDialogAction onClick={() => handleDelete(gc.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                  Eliminar
+                                  Solo esta clase
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -342,6 +358,37 @@ const GroupClassManager = () => {
               <Label className="font-body text-xs">Descripción</Label>
               <Textarea value={form.description} onChange={e => updateField('description', e.target.value)} placeholder="Opcional" rows={2} />
             </div>
+
+            {!editingId && (
+              <div className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="font-body text-xs flex items-center gap-1.5 cursor-pointer">
+                    <Repeat className="h-3.5 w-3.5 text-primary" /> Clase recurrente (semanal)
+                  </Label>
+                  <Switch
+                    checked={form.is_recurring}
+                    onCheckedChange={(v) => setForm(f => ({ ...f, is_recurring: v }))}
+                  />
+                </div>
+                {form.is_recurring && (
+                  <div className="space-y-1.5">
+                    <Label className="font-body text-xs text-muted-foreground">
+                      Repetir durante (semanas)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={2}
+                      max={52}
+                      value={form.recurrence_weeks}
+                      onChange={e => setForm(f => ({ ...f, recurrence_weeks: Math.max(2, Math.min(52, parseInt(e.target.value) || 2)) }))}
+                    />
+                    <p className="text-[10px] text-muted-foreground font-body">
+                      Se crearán {form.recurrence_weeks} clases, una por semana en el mismo día y horario.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter>
