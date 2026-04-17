@@ -92,12 +92,16 @@ const GroupClassManager = () => {
 
   const openCreate = () => {
     setEditingId(null);
+    setEditingClass(null);
+    setApplyToSeries(false);
     setForm(emptyForm);
     setDialogOpen(true);
   };
 
   const openEdit = (gc: GroupClass) => {
     setEditingId(gc.id);
+    setEditingClass(gc);
+    setApplyToSeries(false);
     setForm({
       title: gc.title,
       program: gc.program,
@@ -131,12 +135,31 @@ const GroupClassManager = () => {
     };
 
     if (editingId) {
-      const { error } = await supabase
-        .from('group_classes')
-        .update({ ...basePayload, class_date: form.class_date })
-        .eq('id', editingId);
-      if (error) toast.error('Error al actualizar');
-      else toast.success('Clase actualizada');
+      // If editing a recurring class with "apply to series" → update all future occurrences
+      if (applyToSeries && editingClass?.recurrence_group_id) {
+        const { error } = await supabase
+          .from('group_classes')
+          .update({
+            title: form.title,
+            program: form.program,
+            instructor: form.instructor,
+            description: form.description || null,
+            start_time: form.start_time,
+            end_time: form.end_time,
+            max_capacity: form.max_capacity,
+          })
+          .eq('recurrence_group_id', editingClass.recurrence_group_id)
+          .gte('class_date', editingClass.class_date);
+        if (error) toast.error('Error al actualizar la serie');
+        else toast.success('Serie actualizada (clases futuras)');
+      } else {
+        const { error } = await supabase
+          .from('group_classes')
+          .update({ ...basePayload, class_date: form.class_date })
+          .eq('id', editingId);
+        if (error) toast.error('Error al actualizar');
+        else toast.success('Clase actualizada');
+      }
     } else if (form.is_recurring && form.recurrence_weeks > 1) {
       // Generate N weekly occurrences
       const groupId = crypto.randomUUID();
