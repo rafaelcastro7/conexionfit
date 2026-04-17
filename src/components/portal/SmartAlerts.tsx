@@ -52,12 +52,10 @@ const SmartAlerts = ({ clientCedula, attendance, totalClasses }: SmartAlertsProp
         if (!cancelled) setUpcoming([]);
         return;
       }
-      // Look up class details from the safe public view
-      const ids = confirmed.map((r: any) => r.class_id);
-      const { data: classesData } = await supabase
-        .from('group_classes_public' as any)
-        .select('id, title, class_date, start_time')
-        .in('id', ids);
+      // Look up class details from the safe public RPC
+      const { data: classesData } = await supabase.rpc('list_public_classes', {
+        _from: today,
+      });
 
       const byId = Object.fromEntries(
         ((classesData as any[]) || []).map((c: any) => [c.id, c]),
