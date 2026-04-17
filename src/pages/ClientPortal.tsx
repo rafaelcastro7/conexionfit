@@ -316,7 +316,8 @@ const ClientPortal = () => {
                     </CardContent>
                   </Card>
 
-                  {!completed && (
+                  <GamificationCard attendance={client.attendance} totalClasses={client.totalClasses} />
+
                     <Card className="bg-card/90 backdrop-blur-md shadow-xl border-border/50">
                       <CardHeader className="pb-2">
                         <h3 className="font-display text-xl text-secondary tracking-wide">REGISTRAR ASISTENCIA</h3>
