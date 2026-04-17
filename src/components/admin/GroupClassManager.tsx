@@ -13,10 +13,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell, ListChecks, Repeat } from 'lucide-react';
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell, ListChecks, Repeat, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import ReservationManager from './ReservationManager';
+import ClassQRDialog from './ClassQRDialog';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface GroupClass {
   id: string;
@@ -30,6 +32,7 @@ interface GroupClass {
   max_capacity: number;
   is_recurring?: boolean;
   recurrence_group_id?: string | null;
+  checkin_token?: string;
 }
 
 const PROGRAMS = ['FUNCIONAL', 'YOGA', 'PILATEX', 'RUMBA', 'SPINNING', 'BOXEO', 'ZUMBA'];
@@ -53,9 +56,12 @@ const GroupClassManager = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingClass, setEditingClass] = useState<GroupClass | null>(null);
+  const [applyToSeries, setApplyToSeries] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [reservationCounts, setReservationCounts] = useState<Record<string, number>>({});
   const [reservationClassId, setReservationClassId] = useState<string | null>(null);
+  const [qrClass, setQrClass] = useState<GroupClass | null>(null);
 
   const fetchClasses = async () => {
     setLoading(true);
