@@ -13,9 +13,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell, ListChecks } from 'lucide-react';
+import { Plus, Pencil, Trash2, CalendarIcon, Clock, Users, Loader2, Dumbbell, ListChecks, Repeat } from 'lucide-react';
 import { toast } from 'sonner';
 import ReservationManager from './ReservationManager';
+import { Switch } from '@/components/ui/switch';
 
 interface GroupClass {
   id: string;
@@ -27,6 +28,8 @@ interface GroupClass {
   start_time: string;
   end_time: string;
   max_capacity: number;
+  is_recurring?: boolean;
+  recurrence_group_id?: string | null;
 }
 
 const PROGRAMS = ['FUNCIONAL', 'YOGA', 'PILATEX', 'RUMBA', 'SPINNING', 'BOXEO', 'ZUMBA'];
@@ -40,6 +43,8 @@ const emptyForm = {
   start_time: '',
   end_time: '',
   max_capacity: 20,
+  is_recurring: false,
+  recurrence_weeks: 4,
 };
 
 const GroupClassManager = () => {
@@ -96,6 +101,8 @@ const GroupClassManager = () => {
       start_time: gc.start_time.slice(0, 5),
       end_time: gc.end_time.slice(0, 5),
       max_capacity: gc.max_capacity,
+      is_recurring: false,
+      recurrence_weeks: 4,
     });
     setDialogOpen(true);
   };
@@ -107,23 +114,47 @@ const GroupClassManager = () => {
     }
     setSaving(true);
 
-    const payload = {
+    const basePayload = {
       title: form.title,
       program: form.program,
       instructor: form.instructor,
       description: form.description || null,
-      class_date: form.class_date,
       start_time: form.start_time,
       end_time: form.end_time,
       max_capacity: form.max_capacity,
     };
 
     if (editingId) {
-      const { error } = await supabase.from('group_classes').update(payload).eq('id', editingId);
+      const { error } = await supabase
+        .from('group_classes')
+        .update({ ...basePayload, class_date: form.class_date })
+        .eq('id', editingId);
       if (error) toast.error('Error al actualizar');
       else toast.success('Clase actualizada');
+    } else if (form.is_recurring && form.recurrence_weeks > 1) {
+      // Generate N weekly occurrences
+      const groupId = crypto.randomUUID();
+      const baseDate = new Date(form.class_date + 'T12:00:00');
+      const rows = Array.from({ length: form.recurrence_weeks }).map((_, i) => {
+        const d = new Date(baseDate);
+        d.setDate(baseDate.getDate() + i * 7);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return {
+          ...basePayload,
+          class_date: `${yyyy}-${mm}-${dd}`,
+          is_recurring: true,
+          recurrence_group_id: groupId,
+        };
+      });
+      const { error } = await supabase.from('group_classes').insert(rows);
+      if (error) toast.error('Error al crear las clases recurrentes');
+      else toast.success(`${form.recurrence_weeks} clases recurrentes creadas`);
     } else {
-      const { error } = await supabase.from('group_classes').insert(payload);
+      const { error } = await supabase
+        .from('group_classes')
+        .insert({ ...basePayload, class_date: form.class_date });
       if (error) toast.error('Error al crear clase');
       else toast.success('Clase creada');
     }
@@ -138,6 +169,19 @@ const GroupClassManager = () => {
     if (error) toast.error('Error al eliminar');
     else {
       toast.success('Clase eliminada');
+      fetchClasses();
+    }
+  };
+
+  const handleDeleteSeries = async (recurrenceGroupId: string, fromDate: string) => {
+    const { error } = await supabase
+      .from('group_classes')
+      .delete()
+      .eq('recurrence_group_id', recurrenceGroupId)
+      .gte('class_date', fromDate);
+    if (error) toast.error('Error al eliminar la serie');
+    else {
+      toast.success('Serie recurrente eliminada');
       fetchClasses();
     }
   };
