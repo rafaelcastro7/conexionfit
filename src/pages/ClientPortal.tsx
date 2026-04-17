@@ -49,10 +49,9 @@ const ClientPortal = () => {
     setError('');
     setSuccess('');
 
-    const { data: clientsData, error: err } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('cedula', cedula.trim());
+    const { data: clientsData, error: err } = await supabase.rpc('get_client_by_cedula', {
+      _cedula: cedula.trim(),
+    });
 
     if (err || !clientsData || clientsData.length === 0) {
       setFoundClients([]);
@@ -62,14 +61,11 @@ const ClientPortal = () => {
       return;
     }
 
-    const clientIds = clientsData.map((c: any) => c.id);
-    const { data: attData } = await supabase
-      .from('attendance')
-      .select('*')
-      .in('client_id', clientIds)
-      .order('class_number');
+    const { data: attData } = await supabase.rpc('get_attendance_by_cedula', {
+      _cedula: cedula.trim(),
+    });
 
-    const mapped: ClientData[] = clientsData.map((c: any) => ({
+    const mapped: ClientData[] = (clientsData as any[]).map((c: any) => ({
       id: c.id,
       name: c.name,
       cedula: c.cedula,
@@ -77,7 +73,7 @@ const ClientPortal = () => {
       totalClasses: c.total_classes,
       unitValue: c.unit_value,
       totalValue: c.total_value,
-      attendance: (attData || [])
+      attendance: ((attData as any[]) || [])
         .filter((a: any) => a.client_id === c.id)
         .map((a: any) => ({ id: a.id, date: a.date, classNumber: a.class_number })),
     }));
@@ -100,27 +96,10 @@ const ClientPortal = () => {
       return;
     }
 
-    const { error: insertErr } = await supabase.from('attendance').insert({
-      client_id: client.id,
-      date: dateStr,
-      class_number: client.attendance.length + 1,
-    });
-
-    if (insertErr) {
-      setError('Error al registrar. Contacta al administrador.');
-      return;
-    }
-
-    setFoundClients((prev) =>
-      prev.map((c) =>
-        c.id === client.id
-          ? { ...c, attendance: [...c.attendance, { id: '', date: dateStr, classNumber: c.attendance.length + 1 }] }
-          : c
-      )
-    );
-    setSuccess(`¡Asistencia registrada para el ${format(date, "d 'de' MMMM, yyyy", { locale: es })}!`);
-    setError('');
-    toast.success('Asistencia registrada');
+    // Self-registration is no longer allowed from the portal for security:
+    // attendance must be created by staff (admin/instructor) or via a QR check-in.
+    setError('Para registrar asistencia, escanea el QR de la clase desde recepción o pídele al instructor.');
+    toast.error('La auto-asistencia ha sido deshabilitada por seguridad. Usa el QR de la clase.');
   };
 
   const attended = client ? client.attendance.length : 0;

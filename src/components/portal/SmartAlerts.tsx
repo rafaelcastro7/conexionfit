@@ -41,20 +41,45 @@ const SmartAlerts = ({ clientCedula, attendance, totalClasses }: SmartAlertsProp
     let cancelled = false;
     (async () => {
       const today = format(new Date(), 'yyyy-MM-dd');
-      const { data } = await supabase
-        .from('reservations')
-        .select('class_id, group_classes(title, class_date, start_time)')
-        .eq('client_cedula', clientCedula)
-        .eq('status', 'confirmed');
-      if (cancelled || !data) return;
-      const future = (data as any[])
+      // Get reservations via secure RPC (no public exposure)
+      const { data: resData } = await supabase.rpc('get_reservations_by_cedula', {
+        _cedula: clientCedula,
+      });
+      const confirmed = ((resData as any[]) || []).filter(
+        (r: any) => r.status === 'confirmed',
+      );
+      if (confirmed.length === 0) {
+        if (!cancelled) setUpcoming([]);
+        return;
+      }
+      // Look up class details from the safe public view
+      const ids = confirmed.map((r: any) => r.class_id);
+      const { data: classesData } = await supabase
+        .from('group_classes_public' as any)
+        .select('id, title, class_date, start_time')
+        .in('id', ids);
+
+      const byId = Object.fromEntries(
+        ((classesData as any[]) || []).map((c: any) => [c.id, c]),
+      );
+      const merged: UpcomingReservation[] = confirmed
+        .map((r: any) => ({
+          class_id: r.class_id,
+          group_classes: byId[r.class_id]
+            ? {
+                title: byId[r.class_id].title,
+                class_date: byId[r.class_id].class_date,
+                start_time: byId[r.class_id].start_time,
+              }
+            : null,
+        }))
         .filter((r) => r.group_classes && r.group_classes.class_date >= today)
         .sort((a, b) =>
-          (a.group_classes.class_date + a.group_classes.start_time).localeCompare(
-            b.group_classes.class_date + b.group_classes.start_time,
+          (a.group_classes!.class_date + a.group_classes!.start_time).localeCompare(
+            b.group_classes!.class_date + b.group_classes!.start_time,
           ),
         );
-      setUpcoming(future);
+      if (!cancelled) setUpcoming(merged);
     })();
     return () => { cancelled = true; };
   }, [clientCedula]);
