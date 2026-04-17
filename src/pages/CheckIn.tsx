@@ -52,14 +52,10 @@ const CheckIn = () => {
         setStatus('invalid');
         return;
       }
-      // We only have the title; the safe view gives us the full details:
-      const { data: classRow } = await supabase
-        .from('group_classes_public' as any)
-        .select('id, title, program, instructor, class_date, start_time, end_time')
-        .eq('title', row.class_title)
-        .order('class_date', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+      // Fetch full details via secure public RPC
+      const { data: allClasses } = await supabase.rpc('list_public_classes', { _from: null as any });
+      const classRow = ((allClasses as any[]) || []).find((c: any) => c.title === row.class_title);
+
       if (!classRow) {
         setStatus('invalid');
         return;
