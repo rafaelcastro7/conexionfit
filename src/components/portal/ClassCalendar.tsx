@@ -49,36 +49,41 @@ const ClassCalendar = ({ clientCedula, clientName }: ClassCalendarProps) => {
 
   const fetchClasses = async () => {
     setLoading(true);
-    const { data: classesData } = await supabase
-      .from('group_classes')
-      .select('*')
-      .gte('class_date', format(new Date(), 'yyyy-MM-dd'))
-      .order('class_date')
-      .order('start_time');
+    const { data: classesData } = await supabase.rpc('list_public_classes', {
+      _from: format(new Date(), 'yyyy-MM-dd'),
+    });
 
     if (!classesData) { setLoading(false); return; }
 
-    const classIds = classesData.map(c => c.id);
+    // Fetch counts per class via secure RPC (no exposure of names/cedulas)
+    const counts = await Promise.all(
+      (classesData as any[]).map(async (c: any) => {
+        const { data } = await supabase.rpc('get_class_counts', { _class_id: c.id });
+        const row = (data as any[])?.[0];
+        return {
+          id: c.id,
+          confirmed: Number(row?.confirmed_count ?? 0),
+          waitlist: Number(row?.waitlist_count ?? 0),
+        };
+      }),
+    );
+    const countMap = Object.fromEntries(counts.map((c) => [c.id, c]));
 
-    const [{ data: resData }, { data: waitData }, { data: myResData }, { data: myWaitData }] = await Promise.all([
-      supabase.from('reservations').select('class_id').in('class_id', classIds).eq('status', 'confirmed'),
-      supabase.from('waitlist').select('class_id').in('class_id', classIds),
-      supabase.from('reservations').select('class_id').in('class_id', classIds).eq('client_cedula', clientCedula).eq('status', 'confirmed'),
-      supabase.from('waitlist').select('class_id').in('class_id', classIds).eq('client_cedula', clientCedula),
+    // Fetch the client's own reservations and waitlist via secure RPCs
+    const [{ data: myResData }, { data: myWaitData }] = await Promise.all([
+      supabase.rpc('get_reservations_by_cedula', { _cedula: clientCedula }),
+      supabase.rpc('get_waitlist_by_cedula', { _cedula: clientCedula }),
     ]);
 
-    const resCounts: Record<string, number> = {};
-    (resData || []).forEach(r => { resCounts[r.class_id] = (resCounts[r.class_id] || 0) + 1; });
-    const waitCounts: Record<string, number> = {};
-    (waitData || []).forEach(w => { waitCounts[w.class_id] = (waitCounts[w.class_id] || 0) + 1; });
+    setMyReservations(((myResData as any[]) || [])
+      .filter((r: any) => r.status === 'confirmed')
+      .map((r: any) => r.class_id));
+    setMyWaitlists(((myWaitData as any[]) || []).map((w: any) => w.class_id));
 
-    setMyReservations((myResData || []).map(r => r.class_id));
-    setMyWaitlists((myWaitData || []).map(w => w.class_id));
-
-    setClasses(classesData.map(c => ({
+    setClasses((classesData as any[]).map((c: any) => ({
       ...c,
-      confirmed_count: resCounts[c.id] || 0,
-      waitlist_count: waitCounts[c.id] || 0,
+      confirmed_count: countMap[c.id]?.confirmed ?? 0,
+      waitlist_count: countMap[c.id]?.waitlist ?? 0,
     })));
     setLoading(false);
   };
@@ -94,36 +99,22 @@ const ClassCalendar = ({ clientCedula, clientName }: ClassCalendarProps) => {
     const isFull = gc.confirmed_count >= gc.max_capacity;
 
     if (isFull) {
-      const { data: maxPos } = await supabase
-        .from('waitlist')
-        .select('position')
-        .eq('class_id', gc.id)
-        .order('position', { ascending: false })
-        .limit(1);
-
-      const nextPos = (maxPos && maxPos.length > 0) ? maxPos[0].position + 1 : 1;
-
-      const { error } = await supabase.from('waitlist').insert({
-        class_id: gc.id,
-        client_name: clientName,
-        client_cedula: clientCedula,
-        position: nextPos,
+      const { error } = await supabase.rpc('join_waitlist', {
+        _class_id: gc.id,
+        _cedula: clientCedula,
       });
-
       if (error) {
-        toast.error('Error al unirse a la lista de espera');
+        toast.error(error.message || 'Error al unirse a la lista de espera');
       } else {
-        toast.success(`Te has unido a la lista de espera (posición ${nextPos})`);
+        toast.success('Te has unido a la lista de espera');
       }
     } else {
-      const { error } = await supabase.from('reservations').insert({
-        class_id: gc.id,
-        client_name: clientName,
-        client_cedula: clientCedula,
+      const { error } = await supabase.rpc('create_reservation', {
+        _class_id: gc.id,
+        _cedula: clientCedula,
       });
-
       if (error) {
-        toast.error('Error al reservar');
+        toast.error(error.message || 'Error al reservar');
       } else {
         toast.success('¡Reserva confirmada!');
       }

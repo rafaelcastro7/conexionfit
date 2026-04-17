@@ -253,13 +253,111 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      checkin_via_qr: {
+        Args: { _cedula: string; _token: string }
+        Returns: {
+          class_number: number
+          class_title: string
+          message: string
+          success: boolean
+        }[]
+      }
+      create_reservation: {
+        Args: { _cedula: string; _class_id: string }
+        Returns: string
+      }
+      get_attendance_by_cedula: {
+        Args: { _cedula: string }
+        Returns: {
+          class_number: number
+          client_id: string
+          created_at: string
+          date: string
+          id: string
+        }[]
+      }
+      get_class_counts: {
+        Args: { _class_id: string }
+        Returns: {
+          confirmed_count: number
+          waitlist_count: number
+        }[]
+      }
+      get_client_by_cedula: {
+        Args: { _cedula: string }
+        Returns: {
+          cedula: string
+          id: string
+          name: string
+          program: string
+          total_classes: number
+          total_value: number
+          unit_value: number
+        }[]
+      }
+      get_public_class: {
+        Args: { _id: string }
+        Returns: {
+          class_date: string
+          description: string
+          end_time: string
+          id: string
+          instructor: string
+          max_capacity: number
+          program: string
+          start_time: string
+          title: string
+        }[]
+      }
+      get_reservations_by_cedula: {
+        Args: { _cedula: string }
+        Returns: {
+          class_id: string
+          client_cedula: string
+          client_name: string
+          created_at: string
+          id: string
+          status: string
+        }[]
+      }
       get_user_cedula: { Args: { _user_id: string }; Returns: string }
+      get_waitlist_by_cedula: {
+        Args: { _cedula: string }
+        Returns: {
+          class_id: string
+          client_cedula: string
+          client_name: string
+          created_at: string
+          id: string
+          wait_position: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      join_waitlist: {
+        Args: { _cedula: string; _class_id: string }
+        Returns: string
+      }
+      list_public_classes: {
+        Args: { _from?: string }
+        Returns: {
+          class_date: string
+          description: string
+          end_time: string
+          id: string
+          instructor: string
+          is_recurring: boolean
+          max_capacity: number
+          program: string
+          recurrence_group_id: string
+          start_time: string
+          title: string
+        }[]
       }
     }
     Enums: {

@@ -37,84 +37,67 @@ const CheckIn = () => {
       return;
     }
     (async () => {
-      const { data, error } = await supabase
-        .from('group_classes')
-        .select('id, title, program, instructor, class_date, start_time, end_time')
-        .eq('checkin_token', token)
-        .maybeSingle();
-      if (error || !data) {
+      // Look up class metadata via the public-safe view (no token exposed)
+      // We don't filter by token here because anon cannot read it; instead
+      // we rely on the secure check-in RPC to validate the token at submit.
+      // To show class details we ask the server for them via a tiny RPC call:
+      const { data, error } = await (supabase.rpc as any)('checkin_via_qr', {
+        _token: token,
+        _cedula: '__lookup__',
+      });
+      // The RPC returns the class title even when cedula is invalid, which we
+      // can use to display class info. We treat the call purely as metadata.
+      const row = (data as any[])?.[0];
+      if (error || !row || !row.class_title) {
         setStatus('invalid');
         return;
       }
-      setClassInfo(data);
+      // Fetch full details via secure public RPC
+      const { data: allClasses } = await supabase.rpc('list_public_classes', { _from: null as any });
+      const classRow = ((allClasses as any[]) || []).find((c: any) => c.title === row.class_title);
+
+      if (!classRow) {
+        setStatus('invalid');
+        return;
+      }
+      setClassInfo(classRow as unknown as ClassInfo);
       setStatus('ready');
     })();
   }, [token]);
 
   const handleCheckIn = async () => {
-    if (!cedula.trim() || !classInfo) {
+    if (!cedula.trim() || !classInfo || !token) {
       toast.error('Ingresa tu número de cédula');
       return;
     }
     setSubmitting(true);
 
-    // 1. Find client
-    const { data: client } = await supabase
-      .from('clients')
-      .select('id, name, total_classes')
-      .eq('cedula', cedula.trim())
-      .maybeSingle();
+    const { data, error } = await (supabase.rpc as any)('checkin_via_qr', {
+      _token: token,
+      _cedula: cedula.trim(),
+    });
 
-    if (!client) {
+    const row = (data as any[])?.[0];
+    if (error || !row) {
       setStatus('error');
-      setResultMessage('No encontramos un cliente con esa cédula. Verifica con recepción.');
+      setResultMessage('No pudimos registrar tu asistencia. Intenta de nuevo.');
       setSubmitting(false);
       return;
     }
 
-    setClientName(client.name);
-
-    // 2. Check if already checked in today for this class date
-    const { data: existing } = await supabase
-      .from('attendance')
-      .select('id, class_number')
-      .eq('client_id', client.id)
-      .eq('date', classInfo.class_date);
-
-    if (existing && existing.length > 0) {
-      setStatus('success');
-      setResultMessage(`Ya tienes registrada tu asistencia de hoy (${classInfo.title}).`);
-      setSubmitting(false);
-      return;
-    }
-
-    // 3. Compute next class number
-    const { count } = await supabase
-      .from('attendance')
-      .select('*', { count: 'exact', head: true })
-      .eq('client_id', client.id);
-
-    const nextClassNumber = (count || 0) + 1;
-
-    // 4. Insert attendance
-    const { error: attErr } = await supabase
-      .from('attendance')
-      .insert({
-        client_id: client.id,
-        date: classInfo.class_date,
-        class_number: nextClassNumber,
-      });
-
-    if (attErr) {
+    if (!row.success) {
       setStatus('error');
-      setResultMessage('No pudimos registrar tu asistencia. Por favor intenta de nuevo.');
+      setResultMessage(row.message || 'No pudimos registrar tu asistencia.');
       setSubmitting(false);
       return;
     }
 
+    setClientName(cedula.trim());
     setStatus('success');
     setResultMessage(
-      `¡Bienvenido/a ${client.name}! Asistencia registrada (clase ${nextClassNumber} de ${client.total_classes}).`,
+      row.class_number
+        ? `¡Asistencia registrada! (clase ${row.class_number})`
+        : '¡Asistencia registrada!',
     );
     setSubmitting(false);
   };
