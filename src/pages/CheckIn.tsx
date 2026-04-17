@@ -64,7 +64,7 @@ const CheckIn = () => {
         setStatus('invalid');
         return;
       }
-      setClassInfo(classRow as ClassInfo);
+      setClassInfo(classRow as unknown as ClassInfo);
       setStatus('ready');
     })();
   }, [token]);
