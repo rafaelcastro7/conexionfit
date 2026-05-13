@@ -1,5 +1,12 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase as _supabase } from '@/integrations/supabase/client';
 import type { SessionSheetImportPayload } from '@/lib/parseSessionSheet';
+
+// Las tablas staging existen en BD pero los tipos generados aún no las exponen.
+// Cast tipado-laxo SOLO para este servicio.
+const supabase = _supabase as unknown as {
+  from: (t: string) => any;
+  rpc: (n: string, args?: any) => any;
+};
 
 export type ImportBatchStatus =
   | 'draft'
