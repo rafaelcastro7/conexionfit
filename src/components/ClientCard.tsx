@@ -79,14 +79,18 @@ const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [], canRegis
           <div className="space-y-1.5">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Fechas de asistencia</p>
             <div className="flex flex-wrap gap-1.5">
-              {client.attendance.map((a) => (
+              {client.attendance.map((a) => {
+                const tip = [a.sessionTime, a.notes].filter(Boolean).join(' · ');
+                return (
                 <span
                   key={a.classNumber}
+                  title={tip || undefined}
                   className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-body text-muted-foreground"
                 >
                   {new Date(a.date + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
+                  {a.notes ? <span className="ml-1 text-[10px] opacity-80">({a.notes})</span> : null}
                 </span>
-              ))}
+              );})}
             </div>
           </div>
         )}

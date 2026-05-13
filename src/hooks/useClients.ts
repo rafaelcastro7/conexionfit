@@ -6,6 +6,10 @@ export interface AttendanceRecord {
   id: string;
   date: string;
   classNumber: number;
+  sessionTime?: string | null;
+  notes?: string | null;
+  signature?: string | null;
+  sheetSection?: string | null;
 }
 
 export interface Client {
@@ -57,7 +61,15 @@ export function useClients() {
       totalValue: c.total_value,
       attendance: (attendanceData || [])
         .filter((a: any) => a.client_id === c.id)
-        .map((a: any) => ({ id: a.id, date: a.date, classNumber: a.class_number })),
+        .map((a: any) => ({
+          id: a.id,
+          date: a.date,
+          classNumber: a.class_number,
+          sessionTime: a.session_time ?? null,
+          notes: a.notes ?? null,
+          signature: a.signature ?? null,
+          sheetSection: a.sheet_section ?? null,
+        })),
     }));
 
     setClients(mapped);
@@ -133,5 +145,13 @@ export function useClients() {
     await fetchClients();
   };
 
-  return { clients, loading, addClient, registerAttendance, registerAttendanceWithDate, deleteClient, refetch: fetchClients };
+  return {
+    clients,
+    loading,
+    addClient,
+    registerAttendance,
+    registerAttendanceWithDate,
+    deleteClient,
+    refetch: fetchClients,
+  };
 }

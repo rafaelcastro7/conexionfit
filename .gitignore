@@ -27,3 +27,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Caché del CLI Supabase y dumps (no versionar; pueden contener PII)
+supabase/.temp/

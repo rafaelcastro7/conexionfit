@@ -1,7 +1,7 @@
 import logo from '@/assets/conexion-fit-logo.png';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { UserCircle, BarChart3, Users, LogOut, Info } from 'lucide-react';
+import { UserCircle, BarChart3, Users, LogOut, Info, ClipboardList } from 'lucide-react';
 import { realImages } from '@/lib/realImages';
 import { useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,6 +44,13 @@ const Header = () => {
               <Link to="/dashboard">
                 <Button variant={pathname === '/dashboard' ? 'default' : 'ghost'} size="sm" className="gap-1.5 text-xs">
                   <BarChart3 className="h-3.5 w-3.5" /> Dashboard
+                </Button>
+              </Link>
+            )}
+            {role === 'admin' && (
+              <Link to="/imports">
+                <Button variant={pathname.startsWith('/imports') ? 'default' : 'ghost'} size="sm" className="gap-1.5 text-xs">
+                  <ClipboardList className="h-3.5 w-3.5" /> Importaciones
                 </Button>
               </Link>
             )}

@@ -12,6 +12,8 @@ import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import CheckIn from "./pages/CheckIn";
 import Scanner from "./pages/Scanner";
+import StagingImportsPage from "./pages/StagingImportsPage";
+import StagingImportDetailPage from "./pages/StagingImportDetailPage";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -61,6 +63,16 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/imports" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <StagingImportsPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/imports/:batchId" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <StagingImportDetailPage />
         </ProtectedRoute>
       } />
       <Route path="*" element={<NotFound />} />

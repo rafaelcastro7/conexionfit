@@ -31,7 +31,7 @@ interface ClientData {
   totalClasses: number;
   unitValue: number;
   totalValue: number;
-  attendance: { id: string; date: string; classNumber: number }[];
+  attendance: { id: string; date: string; classNumber: number; sessionTime?: string | null; notes?: string | null }[];
 }
 
 const ClientPortal = () => {
@@ -75,7 +75,13 @@ const ClientPortal = () => {
       totalValue: c.total_value,
       attendance: ((attData as any[]) || [])
         .filter((a: any) => a.client_id === c.id)
-        .map((a: any) => ({ id: a.id, date: a.date, classNumber: a.class_number })),
+        .map((a: any) => ({
+          id: a.id,
+          date: a.date,
+          classNumber: a.class_number,
+          sessionTime: a.session_time ?? null,
+          notes: a.notes ?? null,
+        })),
     }));
 
     setFoundClients(mapped);
@@ -277,9 +283,15 @@ const ClientPortal = () => {
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-body">Historial de asistencia</p>
                           <div className="flex flex-wrap gap-1.5">
                             {client.attendance.map((a) => (
-                              <span key={a.classNumber} className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-body text-muted-foreground">
+                              <span
+                                key={a.classNumber}
+                                className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-body text-muted-foreground"
+                              >
                                 <Dumbbell className="h-3 w-3 text-primary" />
-                                Clase {a.classNumber} — {new Date(a.date + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
+                                Clase {a.classNumber} —{' '}
+                                {new Date(a.date + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
+                                {a.sessionTime ? ` · ${a.sessionTime}` : ''}
+                                {a.notes ? ` · ${a.notes}` : ''}
                               </span>
                             ))}
                           </div>

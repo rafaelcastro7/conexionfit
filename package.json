@@ -10,7 +10,14 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "supabase:start": "npx --yes supabase@latest start",
+    "supabase:stop": "npx --yes supabase@latest stop",
+    "supabase:status": "npx --yes supabase@latest status",
+    "supabase:reset": "npx --yes supabase@latest db reset",
+    "supabase:sync-from-remote": "node scripts/sync-remote-data.mjs",
+    "supabase:dump-remote-data": "node scripts/sync-remote-data.mjs --dump-only",
+    "supabase:restore-remote-dump": "node scripts/sync-remote-data.mjs --restore-only"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -54,6 +61,7 @@
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
+    "pdfjs-dist": "^4.10.38",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { createBatchFromExcelRows } from '@/modules/import-staging/stagingService';
 
 interface ImportRow {
   name: string;
@@ -19,14 +20,13 @@ interface ImportRow {
 }
 
 interface Props {
-  onImport: (client: { name: string; cedula: string; program: string; totalClasses: number; unitValue: number; totalValue: number }) => Promise<void>;
+  onStagingCreated: (batchId: string) => void;
 }
 
-const ImportClientsDialog = ({ onImport }: Props) => {
+const ImportClientsDialog = ({ onStagingCreated }: Props) => {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<ImportRow[]>([]);
-  const [importing, setImporting] = useState(false);
-  const [imported, setImported] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +55,12 @@ const ImportClientsDialog = ({ onImport }: Props) => {
         if (!unitValue) errors.push('Sin valor');
 
         return {
-          name, cedula, program, totalClasses, unitValue, totalValue,
+          name,
+          cedula,
+          program,
+          totalClasses,
+          unitValue,
+          totalValue,
           valid: errors.length === 0,
           error: errors.join(', '),
         };
@@ -66,28 +71,38 @@ const ImportClientsDialog = ({ onImport }: Props) => {
     reader.readAsBinaryString(file);
   };
 
-  const handleImport = async () => {
+  const handleSendToStaging = async () => {
     const validRows = rows.filter((r) => r.valid);
     if (validRows.length === 0) return;
 
-    setImporting(true);
-    setImported(0);
-    for (let i = 0; i < validRows.length; i++) {
-      const r = validRows[i];
-      await onImport({ name: r.name, cedula: r.cedula, program: r.program, totalClasses: r.totalClasses, unitValue: r.unitValue, totalValue: r.totalValue });
-      setImported(i + 1);
+    setSubmitting(true);
+    try {
+      const batchId = await createBatchFromExcelRows(
+        `Excel · ${validRows.length} filas · ${new Date().toLocaleString('es-CO')}`,
+        validRows.map((r) => ({
+          name: r.name,
+          cedula: r.cedula,
+          program: r.program,
+          totalClasses: r.totalClasses,
+          unitValue: r.unitValue,
+          totalValue: r.totalValue,
+        }))
+      );
+      setRows([]);
+      setOpen(false);
+      onStagingCreated(batchId);
+    } catch (e: any) {
+      toast.error(e?.message || 'No se pudo crear el lote de staging');
+    } finally {
+      setSubmitting(false);
     }
-    setImporting(false);
-    toast.success(`${validRows.length} clientes importados exitosamente`);
-    setRows([]);
-    setOpen(false);
   };
 
   const validCount = rows.filter((r) => r.valid).length;
   const invalidCount = rows.filter((r) => !r.valid).length;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setRows([]); setImported(0); } }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setRows([]); }}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2" size="sm">
           <Upload className="h-4 w-4" /> Importar
@@ -96,6 +111,9 @@ const ImportClientsDialog = ({ onImport }: Props) => {
       <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl text-secondary tracking-wide">IMPORTAR CLIENTES</DialogTitle>
+          <p className="text-xs text-muted-foreground font-body pt-1">
+            Los datos van a la <strong>cola de importación</strong> (staging). Allí se validan duplicados y solo entonces pasan a producción.
+          </p>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -115,11 +133,11 @@ const ImportClientsDialog = ({ onImport }: Props) => {
             <>
               <div className="flex items-center gap-3">
                 <Badge className="bg-success/10 text-success border-success/30 font-body">
-                  <CheckCircle2 className="h-3 w-3 mr-1" /> {validCount} válidos
+                  <CheckCircle2 className="h-3 w-3 mr-1" /> {validCount} listos para staging
                 </Badge>
                 {invalidCount > 0 && (
                   <Badge variant="destructive" className="font-body">
-                    <AlertCircle className="h-3 w-3 mr-1" /> {invalidCount} con errores
+                    <AlertCircle className="h-3 w-3 mr-1" /> {invalidCount} con errores (no se envían)
                   </Badge>
                 )}
               </div>
@@ -155,11 +173,11 @@ const ImportClientsDialog = ({ onImport }: Props) => {
                 </Table>
               </div>
 
-              <Button onClick={handleImport} disabled={importing || validCount === 0} className="w-full gap-2">
-                {importing ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Importando {imported}/{validCount}...</>
+              <Button onClick={handleSendToStaging} disabled={submitting || validCount === 0} className="w-full gap-2">
+                {submitting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Creando lote...</>
                 ) : (
-                  <><Upload className="h-4 w-4" /> Importar {validCount} Clientes</>
+                  <><Upload className="h-4 w-4" /> Enviar {validCount} filas a cola de validación</>
                 )}
               </Button>
             </>

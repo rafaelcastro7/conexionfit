@@ -3,17 +3,31 @@ import StatsBar from '@/components/StatsBar';
 import ClientCard from '@/components/ClientCard';
 import AddClientDialog from '@/components/AddClientDialog';
 import ImportClientsDialog from '@/components/ImportClientsDialog';
+import PlantillaAsistenciaDialog from '@/components/PlantillaAsistenciaDialog';
 import { useClients } from '@/hooks/useClients';
 import { useAuth } from '@/hooks/useAuth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2 } from 'lucide-react';
 import { realImages } from '@/lib/realImages';
 
+const CLIENTS_REFRESH = 'conexionfit:clients-refresh';
+
 const Index = () => {
-  const { clients, loading, addClient, registerAttendance, deleteClient } = useClients();
+  const navigate = useNavigate();
+  const { clients, loading, addClient, registerAttendance, deleteClient, refetch } = useClients();
   const { role } = useAuth();
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const fn = () => {
+      void refetch();
+    };
+    window.addEventListener(CLIENTS_REFRESH, fn);
+    return () => window.removeEventListener(CLIENTS_REFRESH, fn);
+  }, [refetch]);
 
   const filtered = clients.filter(
     (c) =>
@@ -58,7 +72,18 @@ const Index = () => {
               </div>
               {role === 'admin' && (
                 <div className="flex items-center gap-2">
-                  <ImportClientsDialog onImport={addClient} />
+                  <PlantillaAsistenciaDialog
+                    onStagingCreated={(id) => {
+                      toast.success('Lote creado en staging. Revisa validación e importa a producción.');
+                      navigate(`/imports/${id}`);
+                    }}
+                  />
+                  <ImportClientsDialog
+                    onStagingCreated={(id) => {
+                      toast.success('Lote Excel en staging. Valida duplicados y aplica cuando esté listo.');
+                      navigate(`/imports/${id}`);
+                    }}
+                  />
                   <AddClientDialog onAdd={addClient} existingClients={clients} />
                 </div>
               )}
