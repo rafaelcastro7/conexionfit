@@ -21,8 +21,6 @@ export type Database = {
           created_at: string
           date: string
           id: string
-          notes: string | null
-          session_time: string | null
         }
         Insert: {
           class_number: number
@@ -30,8 +28,6 @@ export type Database = {
           created_at?: string
           date: string
           id?: string
-          notes?: string | null
-          session_time?: string | null
         }
         Update: {
           class_number?: number
@@ -39,8 +35,6 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
-          notes?: string | null
-          session_time?: string | null
         }
         Relationships: [
           {
@@ -280,8 +274,6 @@ export type Database = {
           created_at: string
           date: string
           id: string
-          notes: string | null
-          session_time: string | null
         }[]
       }
       get_class_counts: {
