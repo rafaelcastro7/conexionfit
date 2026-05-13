@@ -21,6 +21,10 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          notes: string | null
+          session_time: string | null
+          sheet_section: string | null
+          signature: string | null
         }
         Insert: {
           class_number: number
@@ -28,6 +32,10 @@ export type Database = {
           created_at?: string
           date: string
           id?: string
+          notes?: string | null
+          session_time?: string | null
+          sheet_section?: string | null
+          signature?: string | null
         }
         Update: {
           class_number?: number
@@ -35,6 +43,10 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          notes?: string | null
+          session_time?: string | null
+          sheet_section?: string | null
+          signature?: string | null
         }
         Relationships: [
           {
@@ -50,9 +62,13 @@ export type Database = {
         Row: {
           cedula: string
           created_at: string
+          email: string | null
           id: string
+          invoice_number: string | null
           name: string
+          phone: string | null
           program: string
+          sheet_notes: string | null
           total_classes: number
           total_value: number
           unit_value: number
@@ -61,9 +77,13 @@ export type Database = {
         Insert: {
           cedula: string
           created_at?: string
+          email?: string | null
           id?: string
+          invoice_number?: string | null
           name: string
+          phone?: string | null
           program: string
+          sheet_notes?: string | null
           total_classes?: number
           total_value?: number
           unit_value?: number
@@ -72,9 +92,13 @@ export type Database = {
         Update: {
           cedula?: string
           created_at?: string
+          email?: string | null
           id?: string
+          invoice_number?: string | null
           name?: string
+          phone?: string | null
           program?: string
+          sheet_notes?: string | null
           total_classes?: number
           total_value?: number
           unit_value?: number
@@ -130,6 +154,42 @@ export type Database = {
           start_time?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      import_batches: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          label: string | null
+          source: string
+          status: string
+          summary: Json | null
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          label?: string | null
+          source?: string
+          status?: string
+          summary?: Json | null
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          label?: string | null
+          source?: string
+          status?: string
+          summary?: Json | null
         }
         Relationships: []
       }
@@ -195,6 +255,134 @@ export type Database = {
           },
         ]
       }
+      staging_attendance_rows: {
+        Row: {
+          batch_id: string
+          class_number: number
+          client_line_number: number
+          date: string
+          id: string
+          include_in_apply: boolean
+          notes: string | null
+          session_time: string | null
+          sheet_section: string
+          signature: string | null
+          validation_errors: string[]
+          validation_status: string
+        }
+        Insert: {
+          batch_id: string
+          class_number: number
+          client_line_number: number
+          date: string
+          id?: string
+          include_in_apply?: boolean
+          notes?: string | null
+          session_time?: string | null
+          sheet_section?: string
+          signature?: string | null
+          validation_errors?: string[]
+          validation_status?: string
+        }
+        Update: {
+          batch_id?: string
+          class_number?: number
+          client_line_number?: number
+          date?: string
+          id?: string
+          include_in_apply?: boolean
+          notes?: string | null
+          session_time?: string | null
+          sheet_section?: string
+          signature?: string | null
+          validation_errors?: string[]
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staging_attendance_rows_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staging_client_rows: {
+        Row: {
+          batch_id: string
+          cedula: string
+          duplicate_of_client_id: string | null
+          email: string | null
+          id: string
+          include_in_apply: boolean
+          invoice_number: string | null
+          line_number: number
+          name: string
+          phone: string | null
+          program: string
+          sheet_notes: string | null
+          total_classes: number
+          total_value: number
+          unit_value: number
+          validation_errors: string[]
+          validation_status: string
+        }
+        Insert: {
+          batch_id: string
+          cedula?: string
+          duplicate_of_client_id?: string | null
+          email?: string | null
+          id?: string
+          include_in_apply?: boolean
+          invoice_number?: string | null
+          line_number: number
+          name?: string
+          phone?: string | null
+          program?: string
+          sheet_notes?: string | null
+          total_classes?: number
+          total_value?: number
+          unit_value?: number
+          validation_errors?: string[]
+          validation_status?: string
+        }
+        Update: {
+          batch_id?: string
+          cedula?: string
+          duplicate_of_client_id?: string | null
+          email?: string | null
+          id?: string
+          include_in_apply?: boolean
+          invoice_number?: string | null
+          line_number?: number
+          name?: string
+          phone?: string | null
+          program?: string
+          sheet_notes?: string | null
+          total_classes?: number
+          total_value?: number
+          unit_value?: number
+          validation_errors?: string[]
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staging_client_rows_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staging_client_rows_duplicate_of_client_id_fkey"
+            columns: ["duplicate_of_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -253,6 +441,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_staging_batch: { Args: { p_batch_id: string }; Returns: Json }
       checkin_via_qr: {
         Args: { _cedula: string; _token: string }
         Returns: {
@@ -359,6 +548,7 @@ export type Database = {
           title: string
         }[]
       }
+      validate_staging_batch: { Args: { p_batch_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "instructor" | "client"
