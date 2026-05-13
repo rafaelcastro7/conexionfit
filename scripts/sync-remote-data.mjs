@@ -32,19 +32,20 @@ const schemas = schemaArg ? schemaArg.slice("--schema=".length) : "public";
 const fileArg = argv.find((a) => a.startsWith("--file="));
 const dumpFile = fileArg ? fileArg.slice("--file=".length) : defaultDump;
 
-const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+/** Windows: spawn de `.cmd` sin shell suele fallar con EINVAL; `npx` + shell resuelve rutas con espacios. */
+const useShell = process.platform === "win32";
 
 function supabaseArgs(subcommand, ...rest) {
   return ["--yes", "supabase@latest", subcommand, ...rest];
 }
 
 function run(label, args) {
-  console.error(`\n→ ${label}\n${[npx, ...args].join(" ")}\n`);
-  const r = spawnSync(npx, args, {
+  console.error(`\n→ ${label}\nnpx ${args.join(" ")}\n`);
+  const r = spawnSync("npx", args, {
     cwd: root,
     stdio: "inherit",
     env: process.env,
-    shell: false,
+    shell: useShell,
   });
   if (r.error) {
     console.error(r.error);
