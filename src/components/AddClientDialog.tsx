@@ -53,6 +53,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [birthDate, setBirthDate] = useState('');
   const [age, setAge] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
+  const [hasPathology, setHasPathology] = useState<'si' | 'no' | ''>('');
   const [programs, setPrograms] = useState<ProgramEntry[]>([
     { program: '', totalClasses: '', unitValue: '' },
   ]);
