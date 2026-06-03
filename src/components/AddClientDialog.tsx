@@ -99,6 +99,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     setCedula('');
     setPrograms([{ program: '', totalClasses: '', unitValue: '' }]);
     setCedulaFound(false);
+    setExistingCodigo(null);
     setOpen(false);
   };
 
