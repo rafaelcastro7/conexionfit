@@ -80,6 +80,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
       setBirthDate(existing.birthDate ?? '');
       setAge(existing.age ? String(existing.age) : '');
       setMedicalNotes(existing.medicalNotes ?? '');
+      setHasPathology(existing.medicalNotes ? 'si' : 'no');
       setCedulaFound(true);
       setExistingCodigo(existing.codigo || null);
     } else {
