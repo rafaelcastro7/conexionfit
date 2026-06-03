@@ -5,7 +5,6 @@ import ClientsTable from '@/components/ClientsTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AddClientDialog from '@/components/AddClientDialog';
 import ImportClientsDialog from '@/components/ImportClientsDialog';
-import ClientInfoDialog from '@/components/ClientInfoDialog';
 import PlantillaAsistenciaDialog from '@/components/PlantillaAsistenciaDialog';
 import { useClients } from '@/hooks/useClients';
 import { useAuth } from '@/hooks/useAuth';
