@@ -155,6 +155,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
             </div>
           </div>
 
+          <div className="grid gap-1.5">
+            <Label>¿Tiene alguna lesión o patología?</Label>
+            <Input value={medicalNotes} onChange={(e) => setMedicalNotes(e.target.value)} placeholder="Describa lesión o patología (opcional)" />
+          </div>
+
           {existingPrograms.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">Programas actuales:</span>
