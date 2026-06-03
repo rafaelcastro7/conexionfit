@@ -92,6 +92,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
         totalClasses: Number(p.totalClasses),
         unitValue: Number(p.unitValue),
         totalValue: Number(p.totalClasses) * Number(p.unitValue),
+        medicalNotes: medicalNotes.trim() || null,
       });
     }
 
