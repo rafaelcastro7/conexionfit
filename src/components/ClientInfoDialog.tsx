@@ -205,6 +205,11 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
             </div>
           </div>
 
+          <div className="grid gap-1.5">
+            <Label>¿Tiene alguna lesión o patología?</Label>
+            <Input value={medicalNotes} onChange={(e) => setMedicalNotes(e.target.value)} placeholder="Describa lesión o patología (opcional)" />
+          </div>
+
           <Button onClick={handleSubmit} disabled={saving} className="w-full mt-2">
             {saving ? 'Guardando...' : 'Guardar información'}
           </Button>
