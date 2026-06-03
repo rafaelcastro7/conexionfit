@@ -3,6 +3,7 @@ import StatsBar from '@/components/StatsBar';
 import ClientCard from '@/components/ClientCard';
 import AddClientDialog from '@/components/AddClientDialog';
 import ImportClientsDialog from '@/components/ImportClientsDialog';
+import ClientInfoDialog from '@/components/ClientInfoDialog';
 import PlantillaAsistenciaDialog from '@/components/PlantillaAsistenciaDialog';
 import { useClients } from '@/hooks/useClients';
 import { useAuth } from '@/hooks/useAuth';
@@ -85,6 +86,7 @@ const Index = () => {
                     }}
                   />
                   <AddClientDialog onAdd={addClient} existingClients={clients} />
+                  <ClientInfoDialog existingClients={clients} onSaved={refetch} />
                 </div>
               )}
             </div>

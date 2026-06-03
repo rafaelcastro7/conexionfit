@@ -60,6 +60,8 @@ export type Database = {
       }
       clients: {
         Row: {
+          age: number | null
+          birth_date: string | null
           cedula: string
           codigo: string
           created_at: string
@@ -77,6 +79,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          age?: number | null
+          birth_date?: string | null
           cedula: string
           codigo?: string
           created_at?: string
@@ -94,6 +98,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          age?: number | null
+          birth_date?: string | null
           cedula?: string
           codigo?: string
           created_at?: string
