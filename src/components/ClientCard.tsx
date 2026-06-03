@@ -3,37 +3,49 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CalendarCheck, Trash2, CheckCircle2, Layers } from 'lucide-react';
+import { CalendarCheck, Trash2, CheckCircle2, Layers, Lock, Unlock } from 'lucide-react';
 
 interface Props {
   client: Client;
   onRegister: (id: string) => void;
   onDelete: (id: string) => void;
+  onToggleStatus?: (cedula: string, next: 'active' | 'inactive') => void;
   otherPrograms?: string[];
   canRegister?: boolean;
   canDelete?: boolean;
+  canToggleStatus?: boolean;
 }
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
-const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [], canRegister = true, canDelete = true }: Props) => {
+const ClientCard = ({ client, onRegister, onDelete, onToggleStatus, otherPrograms = [], canRegister = true, canDelete = true, canToggleStatus = false }: Props) => {
   const attended = client.attendance.length;
   const progress = (attended / client.totalClasses) * 100;
   const accumulated = attended * client.unitValue;
   const completed = attended >= client.totalClasses;
+  const isInactive = client.status === 'inactive';
 
   return (
-    <Card className={`transition-all hover:shadow-md ${completed ? 'ring-2 ring-success/40' : ''}`}>
+    <Card className={`transition-all hover:shadow-md ${completed ? 'ring-2 ring-success/40' : ''} ${isInactive ? 'opacity-70 ring-2 ring-destructive/40' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="font-display text-xl text-secondary tracking-wide">{client.name}</h3>
-            <p className="text-xs text-muted-foreground font-body">CC: {client.cedula}</p>
+            <p className="text-xs text-muted-foreground font-body">
+              <span className="font-mono font-semibold text-secondary">{client.codigo || '—'}</span>
+              <span className="mx-1.5 opacity-50">·</span>
+              CC: {client.cedula}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <Badge variant="outline" className="border-primary/30 text-primary font-body text-xs">
               {client.program}
             </Badge>
+            {isInactive && (
+              <Badge variant="destructive" className="gap-1 text-[10px]">
+                <Lock className="h-3 w-3" /> Inactivo
+              </Badge>
+            )}
             {completed && (
               <Badge className="bg-success text-success-foreground gap-1">
                 <CheckCircle2 className="h-3 w-3" /> Completado
@@ -97,8 +109,19 @@ const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [], canRegis
 
         <div className="flex gap-2 pt-1">
           {canRegister && (
-            <Button onClick={() => onRegister(client.id)} disabled={completed} className="flex-1 gap-2" size="sm">
+            <Button onClick={() => onRegister(client.id)} disabled={completed || isInactive} className="flex-1 gap-2" size="sm">
               <CalendarCheck className="h-4 w-4" /> Registrar Asistencia
+            </Button>
+          )}
+          {canToggleStatus && onToggleStatus && (
+            <Button
+              onClick={() => onToggleStatus(client.cedula, isInactive ? 'active' : 'inactive')}
+              variant="outline"
+              size="sm"
+              title={isInactive ? 'Reactivar código' : 'Bloquear código (inactivar)'}
+              className={isInactive ? 'text-success hover:bg-success hover:text-success-foreground' : 'text-secondary hover:bg-secondary hover:text-secondary-foreground'}
+            >
+              {isInactive ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
             </Button>
           )}
           {canDelete && (

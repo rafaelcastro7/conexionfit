@@ -61,6 +61,7 @@ export type Database = {
       clients: {
         Row: {
           cedula: string
+          codigo: string
           created_at: string
           email: string | null
           id: string
@@ -69,6 +70,7 @@ export type Database = {
           phone: string | null
           program: string
           sheet_notes: string | null
+          status: string
           total_classes: number
           total_value: number
           unit_value: number
@@ -76,6 +78,7 @@ export type Database = {
         }
         Insert: {
           cedula: string
+          codigo?: string
           created_at?: string
           email?: string | null
           id?: string
@@ -84,6 +87,7 @@ export type Database = {
           phone?: string | null
           program: string
           sheet_notes?: string | null
+          status?: string
           total_classes?: number
           total_value?: number
           unit_value?: number
@@ -91,6 +95,7 @@ export type Database = {
         }
         Update: {
           cedula?: string
+          codigo?: string
           created_at?: string
           email?: string | null
           id?: string
@@ -99,6 +104,7 @@ export type Database = {
           phone?: string | null
           program?: string
           sheet_notes?: string | null
+          status?: string
           total_classes?: number
           total_value?: number
           unit_value?: number
@@ -476,9 +482,11 @@ export type Database = {
         Args: { _cedula: string }
         Returns: {
           cedula: string
+          codigo: string
           id: string
           name: string
           program: string
+          status: string
           total_classes: number
           total_value: number
           unit_value: number
