@@ -1,7 +1,7 @@
 import Header from '@/components/Header';
 import StatsBar from '@/components/StatsBar';
 import ClientCard from '@/components/ClientCard';
-import ClientRow from '@/components/ClientRow';
+import ClientsTable from '@/components/ClientsTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AddClientDialog from '@/components/AddClientDialog';
 import ImportClientsDialog from '@/components/ImportClientsDialog';
@@ -20,7 +20,7 @@ const CLIENTS_REFRESH = 'conexionfit:clients-refresh';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { clients, loading, addClient, registerAttendance, deleteClient, setClientStatus, refetch } = useClients();
+  const { clients, loading, addClient, registerAttendance, deleteClient, setClientStatus, setClientCategory, refetch } = useClients();
   const { role } = useAuth();
   const [search, setSearch] = useState('');
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -94,15 +94,13 @@ const Index = () => {
               )}
             </div>
 
-            <div className="flex flex-col gap-2">
-              {filtered.map((client) => (
-                <ClientRow
-                  key={client.id}
-                  client={client}
-                  onClick={() => setDetailId(client.id)}
-                />
-              ))}
-            </div>
+            <ClientsTable
+              clients={filtered}
+              onRowClick={(id) => setDetailId(id)}
+              canEditCategory={role === 'admin'}
+              onCategoryChange={setClientCategory}
+            />
+
 
             <Dialog open={!!detailId} onOpenChange={(open) => !open && setDetailId(null)}>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
