@@ -58,6 +58,42 @@ export type Database = {
           },
         ]
       }
+      client_prospects: {
+        Row: {
+          age: number | null
+          birth_date: string | null
+          cedula: string | null
+          created_at: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          birth_date?: string | null
+          cedula?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          birth_date?: string | null
+          cedula?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           age: number | null
