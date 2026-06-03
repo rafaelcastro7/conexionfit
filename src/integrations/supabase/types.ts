@@ -66,6 +66,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          medical_notes: string | null
           notes: string | null
           phone: string | null
           updated_at: string
@@ -77,6 +78,7 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          medical_notes?: string | null
           notes?: string | null
           phone?: string | null
           updated_at?: string
@@ -88,6 +90,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          medical_notes?: string | null
           notes?: string | null
           phone?: string | null
           updated_at?: string
@@ -104,6 +107,7 @@ export type Database = {
           email: string | null
           id: string
           invoice_number: string | null
+          medical_notes: string | null
           name: string
           phone: string | null
           program: string
@@ -123,6 +127,7 @@ export type Database = {
           email?: string | null
           id?: string
           invoice_number?: string | null
+          medical_notes?: string | null
           name: string
           phone?: string | null
           program: string
@@ -142,6 +147,7 @@ export type Database = {
           email?: string | null
           id?: string
           invoice_number?: string | null
+          medical_notes?: string | null
           name?: string
           phone?: string | null
           program?: string
