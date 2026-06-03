@@ -98,9 +98,11 @@ const Index = () => {
                     client={client}
                     onRegister={registerAttendance}
                     onDelete={deleteClient}
+                    onToggleStatus={setClientStatus}
                     otherPrograms={others}
                     canRegister={role === 'admin' || role === 'instructor'}
                     canDelete={role === 'admin'}
+                    canToggleStatus={role === 'admin'}
                   />
                 );
               })}
