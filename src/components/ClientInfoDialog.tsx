@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ClipboardList } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { ClipboardList, Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Client } from '@/hooks/useClients';
@@ -26,23 +29,32 @@ const calcAge = (iso: string): number | null => {
 
 const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
   const [open, setOpen] = useState(false);
-  const [cedula, setCedula] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selected, setSelected] = useState<Client | null>(null);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [age, setAge] = useState<string>('');
-  const [matched, setMatched] = useState<Client | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const handleCedulaChange = (val: string) => {
-    setCedula(val);
-    const found = existingClients.find((c) => c.cedula === val.trim());
-    if (found) {
-      setFullName(found.name);
-      setMatched(found);
-    } else {
-      setMatched(null);
+  // Unique clients by cédula (one row per person, ignoring multiple programs)
+  const uniqueClients = useMemo(() => {
+    const map = new Map<string, Client>();
+    for (const c of existingClients) {
+      if (!map.has(c.cedula)) map.set(c.cedula, c);
     }
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [existingClients]);
+
+  const selectClient = (c: Client) => {
+    setSelected(c);
+    setFullName(c.name);
+    setPhone((c as any).phone ?? '');
+    const bd = (c as any).birth_date ?? '';
+    setBirthDate(bd || '');
+    const a = (c as any).age;
+    setAge(a ? String(a) : (bd ? String(calcAge(bd) ?? '') : ''));
+    setPickerOpen(false);
   };
 
   const handleBirth = (val: string) => {
@@ -52,12 +64,16 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
   };
 
   const reset = () => {
-    setCedula(''); setFullName(''); setPhone(''); setBirthDate(''); setAge(''); setMatched(null);
+    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge('');
   };
 
   const handleSubmit = async () => {
-    if (!cedula.trim() || !fullName.trim()) {
-      toast.error('Cédula y nombre son obligatorios');
+    if (!selected) {
+      toast.error('Selecciona un cliente');
+      return;
+    }
+    if (!fullName.trim()) {
+      toast.error('El nombre es obligatorio');
       return;
     }
     setSaving(true);
@@ -67,16 +83,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
       birth_date: birthDate || null,
       age: age ? Number(age) : null,
     };
-
-    let error;
-    if (matched) {
-      ({ error } = await supabase.from('clients').update(payload).eq('cedula', cedula.trim()));
-    } else {
-      toast.error('Cliente no encontrado. Matricúlalo primero en "Nuevo Cliente".');
-      setSaving(false);
-      return;
-    }
-
+    const { error } = await supabase.from('clients').update(payload).eq('cedula', selected.cedula);
     setSaving(false);
     if (error) {
       toast.error('Error al guardar: ' + error.message);
@@ -102,17 +109,40 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid gap-1.5">
-            <Label>Cédula</Label>
-            <Input
-              value={cedula}
-              onChange={(e) => handleCedulaChange(e.target.value)}
-              placeholder="Buscar cliente por cédula"
-            />
-            {matched && (
-              <p className="text-[11px] text-primary font-body">
-                Cliente encontrado — Código {matched.codigo}
-              </p>
-            )}
+            <Label>Cliente</Label>
+            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className={cn('justify-between font-normal', !selected && 'text-muted-foreground')}
+                >
+                  {selected ? `${selected.codigo} — ${selected.name}` : 'Selecciona un cliente matriculado'}
+                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0 pointer-events-auto" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar por nombre o código..." />
+                  <CommandList>
+                    <CommandEmpty>Sin resultados</CommandEmpty>
+                    <CommandGroup>
+                      {uniqueClients.map((c) => (
+                        <CommandItem
+                          key={c.cedula}
+                          value={`${c.codigo} ${c.name}`}
+                          onSelect={() => selectClient(c)}
+                        >
+                          <Check className={cn('mr-2 h-4 w-4', selected?.cedula === c.cedula ? 'opacity-100' : 'opacity-0')} />
+                          <span className="font-mono text-xs mr-2">{c.codigo}</span>
+                          <span>{c.name}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid gap-1.5">
