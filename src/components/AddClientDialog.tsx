@@ -218,10 +218,28 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
             </div>
           </div>
 
-          <div className="grid gap-1.5">
-            <Label>¿Tiene alguna lesión o patología?</Label>
-            <Input value={medicalNotes} onChange={(e) => setMedicalNotes(e.target.value)} placeholder="Describa lesión o patología (opcional)" />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="grid gap-1.5">
+              <Label>¿Tiene lesión o patología?</Label>
+              <Select value={hasPathology} onValueChange={(v) => { setHasPathology(v as 'si' | 'no'); if (v === 'no') setMedicalNotes(''); }}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="si">Sí</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2 grid gap-1.5">
+              <Label>Observaciones {hasPathology === 'si' && <span className="text-destructive">*</span>}</Label>
+              <Input
+                value={medicalNotes}
+                onChange={(e) => setMedicalNotes(e.target.value)}
+                placeholder={hasPathology === 'si' ? 'Detalle la patología' : 'Sin patología'}
+                disabled={hasPathology !== 'si'}
+              />
+            </div>
           </div>
+
 
           {existingPrograms.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
