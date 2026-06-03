@@ -113,7 +113,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const canAddMore = programs.length < PROGRAMS.length - existingPrograms.length;
 
   const reset = () => {
-    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes('');
+    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setHasPathology('');
     setPrograms([{ program: '', totalClasses: '', unitValue: '' }]);
     setCedulaFound(false); setExistingCodigo(null);
   };
