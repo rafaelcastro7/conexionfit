@@ -1,6 +1,6 @@
 import { Client } from '@/hooks/useClients';
 import { Badge } from '@/components/ui/badge';
-import { Lock, HeartPulse, CheckCircle2 } from 'lucide-react';
+import { Lock, HeartPulse, Smile } from 'lucide-react';
 
 interface Props {
   clients: Client[];
