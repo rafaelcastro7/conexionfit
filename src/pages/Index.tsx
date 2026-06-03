@@ -1,6 +1,8 @@
 import Header from '@/components/Header';
 import StatsBar from '@/components/StatsBar';
 import ClientCard from '@/components/ClientCard';
+import ClientRow from '@/components/ClientRow';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AddClientDialog from '@/components/AddClientDialog';
 import ImportClientsDialog from '@/components/ImportClientsDialog';
 import ClientInfoDialog from '@/components/ClientInfoDialog';
@@ -21,6 +23,7 @@ const Index = () => {
   const { clients, loading, addClient, registerAttendance, deleteClient, setClientStatus, refetch } = useClients();
   const { role } = useAuth();
   const [search, setSearch] = useState('');
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   useEffect(() => {
     const fn = () => {
@@ -91,24 +94,41 @@ const Index = () => {
               )}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((client) => {
-                const others = cedulaPrograms[client.cedula]?.filter((p) => p !== client.program) || [];
-                return (
-                  <ClientCard
-                    key={client.id}
-                    client={client}
-                    onRegister={registerAttendance}
-                    onDelete={deleteClient}
-                    onToggleStatus={setClientStatus}
-                    otherPrograms={others}
-                    canRegister={role === 'admin' || role === 'instructor'}
-                    canDelete={role === 'admin'}
-                    canToggleStatus={role === 'admin'}
-                  />
-                );
-              })}
+            <div className="flex flex-col gap-2">
+              {filtered.map((client) => (
+                <ClientRow
+                  key={client.id}
+                  client={client}
+                  onClick={() => setDetailId(client.id)}
+                />
+              ))}
             </div>
+
+            <Dialog open={!!detailId} onOpenChange={(open) => !open && setDetailId(null)}>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="font-display tracking-wide">Ficha del cliente</DialogTitle>
+                </DialogHeader>
+                {(() => {
+                  const client = clients.find((c) => c.id === detailId);
+                  if (!client) return null;
+                  const others = cedulaPrograms[client.cedula]?.filter((p) => p !== client.program) || [];
+                  return (
+                    <ClientCard
+                      client={client}
+                      onRegister={registerAttendance}
+                      onDelete={(id) => { deleteClient(id); setDetailId(null); }}
+                      onToggleStatus={setClientStatus}
+                      otherPrograms={others}
+                      canRegister={role === 'admin' || role === 'instructor'}
+                      canDelete={role === 'admin'}
+                      canToggleStatus={role === 'admin'}
+                    />
+                  );
+                })()}
+              </DialogContent>
+            </Dialog>
+
 
             {filtered.length === 0 && (
               <div className="text-center py-16 text-muted-foreground font-body">
