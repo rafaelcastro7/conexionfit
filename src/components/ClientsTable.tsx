@@ -52,37 +52,19 @@ const ClientsTable = ({ clients, onRowClick }: Props) => {
                   <td className="px-3 py-2.5 font-mono text-xs">{c.codigo || '—'}</td>
                   <td className="px-3 py-2.5 font-body">{formatBirth(c.birthDate)}</td>
                   <td className="px-3 py-2.5 text-center font-body">{c.age ?? '—'}</td>
-                  <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
-                    {canEditCategory && onCategoryChange ? (
-                      <Select
-                        value={c.category ?? 'none'}
-                        onValueChange={(v) =>
-                          onCategoryChange(c.cedula, v === 'none' ? null : (v as ClientCategory))
-                        }
-                      >
-                        <SelectTrigger
-                          className={`h-7 w-32 text-xs font-semibold ${
-                            c.category ? categoryClasses[c.category] : ''
-                          }`}
-                        >
-                          <SelectValue placeholder="Sin asignar" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Sin asignar</SelectItem>
-                          {CATEGORIES.map((cat) => (
-                            <SelectItem key={cat} value={cat}>
-                              {cat}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : c.category ? (
-                      <Badge variant="outline" className={`font-semibold ${categoryClasses[c.category]}`}>
-                        {c.category}
-                      </Badge>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
+                  <td className="px-3 py-2.5 text-right">
+                    <div className="inline-flex items-center gap-1.5">
+                      {!inactive && (
+                        <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50 gap-1 text-[10px] dark:bg-emerald-950 dark:text-emerald-300">
+                          Activo
+                        </Badge>
+                      )}
+                      {inactive && (
+                        <Badge variant="destructive" className="gap-1 text-[10px]">
+                          <Lock className="h-3 w-3" /> Inactivo
+                        </Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     <div className="inline-flex items-center gap-1.5">
