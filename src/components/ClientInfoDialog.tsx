@@ -58,6 +58,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
     setBirthDate(bd || '');
     const a = (c as any).age;
     setAge(a ? String(a) : (bd ? String(calcAge(bd) ?? '') : ''));
+    setMedicalNotes((c as any).medical_notes ?? '');
     setPickerOpen(false);
   };
 
