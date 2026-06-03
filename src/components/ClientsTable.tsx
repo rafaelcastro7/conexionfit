@@ -42,17 +42,21 @@ const ClientsTable = ({ clients, onRowClick }: Props) => {
                   }`}
                 >
                   <td className="px-3 py-2.5 font-body font-medium text-secondary">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate">{c.name}</span>
-                      {c.medicalNotes && (
-                        <HeartPulse className="h-3.5 w-3.5 text-rose-500 shrink-0" aria-label={c.medicalNotes} />
-                      )}
-                    </div>
+                    <div className="truncate">{c.name}</div>
                     <div className="text-[10px] text-muted-foreground font-normal">{c.program}</div>
                   </td>
                   <td className="px-3 py-2.5 font-mono text-xs">{c.codigo || '—'}</td>
                   <td className="px-3 py-2.5 font-body">{formatBirth(c.birthDate)}</td>
                   <td className="px-3 py-2.5 text-center font-body">{c.age ?? '—'}</td>
+                  <td className="px-3 py-2.5 text-center">
+                    {c.medicalNotes ? (
+                      <Badge variant="outline" className="border-rose-300 text-rose-700 bg-rose-50 gap-1 text-[10px] dark:bg-rose-950 dark:text-rose-300">
+                        <HeartPulse className="h-3 w-3" /> Patología
+                      </Badge>
+                    ) : (
+                      <Smile className="h-4 w-4 text-emerald-600 inline-block" aria-label="Sin patología" />
+                    )}
+                  </td>
                   <td className="px-3 py-2.5 text-right">
                     <div className="inline-flex items-center gap-1.5">
                       {!inactive && (
