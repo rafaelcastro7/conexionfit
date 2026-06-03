@@ -121,7 +121,16 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
           <DialogTitle className="text-2xl text-secondary">MATRICULAR CLIENTE</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-2">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Código</Label>
+              <div className="flex items-center h-10 px-3 rounded-md border bg-muted/60 text-sm font-mono font-semibold text-secondary">
+                {displayedCodigo}
+              </div>
+              <p className="text-[10px] text-muted-foreground font-body">
+                {existingCodigo ? 'Código existente del cliente' : 'Se asignará automáticamente'}
+              </p>
+            </div>
             <div className="grid gap-1.5">
               <Label>Cédula</Label>
               <Input
@@ -130,7 +139,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                 placeholder="Nº documento"
               />
               {cedulaFound && (
-                <p className="text-[11px] text-primary font-body">Cliente existente — se agregará nuevo programa</p>
+                <p className="text-[11px] text-primary font-body">Cliente existente — se agregará programa</p>
               )}
             </div>
             <div className="grid gap-1.5">
