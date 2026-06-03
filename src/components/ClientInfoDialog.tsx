@@ -61,7 +61,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
       return;
     }
     setSaving(true);
-    const payload: Record<string, any> = {
+    const payload = {
       name: fullName.toUpperCase(),
       phone: phone || null,
       birth_date: birthDate || null,
