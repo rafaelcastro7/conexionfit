@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CalendarCheck, Trash2, CheckCircle2, Layers, Lock, Unlock, HeartPulse } from 'lucide-react';
 
 interface Props {
@@ -91,6 +92,26 @@ const ClientCard = ({ client, onRegister, onDelete, onToggleStatus, otherProgram
             <p className="text-sm font-semibold font-body">{formatCurrency(client.totalValue)}</p>
           </div>
         </div>
+
+        {client.medicalNotes && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 dark:border-rose-900 dark:bg-rose-950">
+            <div className="flex items-center gap-2">
+              <HeartPulse className="h-4 w-4 text-rose-500 shrink-0" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="text-sm font-body text-rose-700 dark:text-rose-300 truncate cursor-help">
+                      {client.medicalNotes}
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p className="text-sm">{client.medicalNotes}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        )}
 
         {attended > 0 && (
           <div className="space-y-1.5">
