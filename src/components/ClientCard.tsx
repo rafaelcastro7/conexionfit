@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CalendarCheck, Trash2, CheckCircle2, Layers, Lock, Unlock } from 'lucide-react';
+import { CalendarCheck, Trash2, CheckCircle2, Layers, Lock, Unlock, HeartPulse } from 'lucide-react';
 
 interface Props {
   client: Client;
@@ -49,6 +49,11 @@ const ClientCard = ({ client, onRegister, onDelete, onToggleStatus, otherProgram
             {completed && (
               <Badge className="bg-success text-success-foreground gap-1">
                 <CheckCircle2 className="h-3 w-3" /> Completado
+              </Badge>
+            )}
+            {client.medicalNotes && (
+              <Badge variant="outline" className="gap-1 text-[10px] border-rose-400 text-rose-500" title={client.medicalNotes}>
+                <HeartPulse className="h-3 w-3" /> Lesión/Patología
               </Badge>
             )}
           </div>

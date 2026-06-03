@@ -23,6 +23,10 @@ export interface Client {
   unitValue: number;
   totalValue: number;
   attendance: AttendanceRecord[];
+  medicalNotes?: string | null;
+  phone?: string | null;
+  birthDate?: string | null;
+  age?: number | null;
 }
 
 export function useClients() {
@@ -63,6 +67,10 @@ export function useClients() {
       totalClasses: c.total_classes,
       unitValue: c.unit_value,
       totalValue: c.total_value,
+      medicalNotes: c.medical_notes ?? null,
+      phone: c.phone ?? null,
+      birthDate: c.birth_date ?? null,
+      age: c.age ?? null,
       attendance: (attendanceData || [])
         .filter((a: any) => a.client_id === c.id)
         .map((a: any) => ({
@@ -92,6 +100,7 @@ export function useClients() {
       total_classes: client.totalClasses,
       unit_value: client.unitValue,
       total_value: client.totalValue,
+      medical_notes: client.medicalNotes ?? null,
     });
 
     if (error) {

@@ -39,6 +39,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [age, setAge] = useState<string>('');
+  const [medicalNotes, setMedicalNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
   const uniqueClients = useMemo(() => {
@@ -57,6 +58,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
     setBirthDate(bd || '');
     const a = (c as any).age;
     setAge(a ? String(a) : (bd ? String(calcAge(bd) ?? '') : ''));
+    setMedicalNotes((c as any).medical_notes ?? '');
     setPickerOpen(false);
   };
 
@@ -67,13 +69,13 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
   };
 
   const reset = () => {
-    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge('');
+    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes('');
     setMode('registered');
   };
 
   const changeMode = (m: Mode) => {
     setMode(m);
-    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge('');
+    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes('');
   };
 
   const handleSubmit = async () => {
@@ -94,6 +96,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
         phone: phone || null,
         birth_date: birthDate || null,
         age: age ? Number(age) : null,
+        medical_notes: medicalNotes.trim() || null,
       }).eq('cedula', selected.cedula);
       setSaving(false);
       if (error) { toast.error('Error al guardar: ' + error.message); return; }
@@ -104,6 +107,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
         phone: phone || null,
         birth_date: birthDate || null,
         age: age ? Number(age) : null,
+        medical_notes: medicalNotes.trim() || null,
       });
       setSaving(false);
       if (error) { toast.error('Error al guardar: ' + error.message); return; }
@@ -199,6 +203,11 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
               <Label>Edad</Label>
               <Input type="number" min={0} max={120} value={age} onChange={(e) => setAge(e.target.value)} placeholder="Años" />
             </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label>¿Tiene alguna lesión o patología?</Label>
+            <Input value={medicalNotes} onChange={(e) => setMedicalNotes(e.target.value)} placeholder="Describa lesión o patología (opcional)" />
           </div>
 
           <Button onClick={handleSubmit} disabled={saving} className="w-full mt-2">

@@ -16,7 +16,7 @@ interface ProgramEntry {
 }
 
 interface Props {
-  onAdd: (client: { name: string; cedula: string; program: string; totalClasses: number; unitValue: number; totalValue: number }) => void;
+  onAdd: (client: { name: string; cedula: string; program: string; totalClasses: number; unitValue: number; totalValue: number; medicalNotes?: string | null }) => void;
   existingClients: Client[];
 }
 
@@ -24,6 +24,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [cedula, setCedula] = useState('');
+  const [medicalNotes, setMedicalNotes] = useState('');
   const [programs, setPrograms] = useState<ProgramEntry[]>([
     { program: '', totalClasses: '', unitValue: '' },
   ]);
@@ -92,6 +93,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
         totalClasses: Number(p.totalClasses),
         unitValue: Number(p.unitValue),
         totalValue: Number(p.totalClasses) * Number(p.unitValue),
+        medicalNotes: medicalNotes.trim() || null,
       });
     }
 
@@ -151,6 +153,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                 disabled={cedulaFound}
               />
             </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label>¿Tiene alguna lesión o patología?</Label>
+            <Input value={medicalNotes} onChange={(e) => setMedicalNotes(e.target.value)} placeholder="Describa lesión o patología (opcional)" />
           </div>
 
           {existingPrograms.length > 0 && (
