@@ -3,24 +3,27 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CalendarCheck, Trash2, CheckCircle2, Layers } from 'lucide-react';
+import { CalendarCheck, Trash2, CheckCircle2, Layers, Lock, Unlock } from 'lucide-react';
 
 interface Props {
   client: Client;
   onRegister: (id: string) => void;
   onDelete: (id: string) => void;
+  onToggleStatus?: (cedula: string, next: 'active' | 'inactive') => void;
   otherPrograms?: string[];
   canRegister?: boolean;
   canDelete?: boolean;
+  canToggleStatus?: boolean;
 }
 
 const formatCurrency = (v: number) => `$${v.toLocaleString('es-CO')}`;
 
-const ClientCard = ({ client, onRegister, onDelete, otherPrograms = [], canRegister = true, canDelete = true }: Props) => {
+const ClientCard = ({ client, onRegister, onDelete, onToggleStatus, otherPrograms = [], canRegister = true, canDelete = true, canToggleStatus = false }: Props) => {
   const attended = client.attendance.length;
   const progress = (attended / client.totalClasses) * 100;
   const accumulated = attended * client.unitValue;
   const completed = attended >= client.totalClasses;
+  const isInactive = client.status === 'inactive';
 
   return (
     <Card className={`transition-all hover:shadow-md ${completed ? 'ring-2 ring-success/40' : ''}`}>
