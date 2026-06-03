@@ -39,6 +39,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [age, setAge] = useState<string>('');
+  const [medicalNotes, setMedicalNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
   const uniqueClients = useMemo(() => {
