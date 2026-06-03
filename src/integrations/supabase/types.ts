@@ -78,7 +78,7 @@ export type Database = {
         }
         Insert: {
           cedula: string
-          codigo: string
+          codigo?: string
           created_at?: string
           email?: string | null
           id?: string
