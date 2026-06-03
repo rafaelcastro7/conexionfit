@@ -96,7 +96,18 @@ export function useClients() {
     fetchClients();
   }, [fetchClients]);
 
-  const addClient = async (client: Omit<Client, 'id' | 'attendance'>) => {
+  const addClient = async (client: {
+    name: string;
+    cedula: string | null;
+    program: string | null;
+    totalClasses: number;
+    unitValue: number;
+    totalValue: number;
+    medicalNotes?: string | null;
+    phone?: string | null;
+    birthDate?: string | null;
+    age?: number | null;
+  }) => {
     const { error } = await supabase.from('clients').insert({
       name: client.name,
       cedula: client.cedula,
@@ -105,13 +116,16 @@ export function useClients() {
       unit_value: client.unitValue,
       total_value: client.totalValue,
       medical_notes: client.medicalNotes ?? null,
-    });
+      phone: client.phone ?? null,
+      birth_date: client.birthDate ?? null,
+      age: client.age ?? null,
+    } as any);
 
     if (error) {
       toast.error('Error al crear cliente: ' + error.message);
       return;
     }
-    toast.success('Cliente matriculado exitosamente');
+    toast.success('Cliente registrado');
     await fetchClients();
   };
 

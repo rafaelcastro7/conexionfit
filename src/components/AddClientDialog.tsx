@@ -8,6 +8,7 @@ import { PROGRAMS } from '@/types/client';
 import { Client } from '@/hooks/useClients';
 import { UserPlus, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 interface ProgramEntry {
   program: string;
@@ -15,15 +16,42 @@ interface ProgramEntry {
   unitValue: string;
 }
 
+export interface NewClientPayload {
+  name: string;
+  cedula: string | null;
+  program: string | null;
+  totalClasses: number;
+  unitValue: number;
+  totalValue: number;
+  medicalNotes?: string | null;
+  phone?: string | null;
+  birthDate?: string | null;
+  age?: number | null;
+}
+
 interface Props {
-  onAdd: (client: { name: string; cedula: string; program: string; totalClasses: number; unitValue: number; totalValue: number; medicalNotes?: string | null }) => void;
+  onAdd: (client: NewClientPayload) => void | Promise<void>;
   existingClients: Client[];
 }
+
+const calcAge = (iso: string): number | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - d.getFullYear();
+  const m = today.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+  return age;
+};
 
 const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [cedula, setCedula] = useState('');
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [age, setAge] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
   const [programs, setPrograms] = useState<ProgramEntry[]>([
     { program: '', totalClasses: '', unitValue: '' },
@@ -31,7 +59,6 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [cedulaFound, setCedulaFound] = useState(false);
   const [existingCodigo, setExistingCodigo] = useState<string | null>(null);
 
-  // Compute next sequential code from clients already loaded
   const nextCodigo = (() => {
     const nums = existingClients
       .map((c) => parseInt(String(c.codigo || '').replace(/\D/g, ''), 10))
@@ -44,9 +71,14 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
 
   const handleCedulaChange = (val: string) => {
     setCedula(val);
-    const existing = existingClients.find((c) => c.cedula === val.trim());
+    const trimmed = val.trim();
+    const existing = trimmed ? existingClients.find((c) => c.cedula === trimmed) : null;
     if (existing) {
       setName(existing.name);
+      setPhone(existing.phone ?? '');
+      setBirthDate(existing.birthDate ?? '');
+      setAge(existing.age ? String(existing.age) : '');
+      setMedicalNotes(existing.medicalNotes ?? '');
       setCedulaFound(true);
       setExistingCodigo(existing.codigo || null);
     } else {
@@ -55,53 +87,65 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     }
   };
 
+  const handleBirth = (val: string) => {
+    setBirthDate(val);
+    const a = calcAge(val);
+    if (a !== null && a >= 0 && a < 120) setAge(String(a));
+  };
 
   const existingPrograms = existingClients
     .filter((c) => c.cedula === cedula.trim())
-    .map((c) => c.program);
+    .map((c) => c.program)
+    .filter(Boolean);
 
   const availablePrograms = (index: number) => {
     const selectedInForm = programs.map((p, i) => (i !== index ? p.program : '')).filter(Boolean);
     return PROGRAMS.filter((p) => !existingPrograms.includes(p) && !selectedInForm.includes(p));
   };
 
-  const addProgramRow = () => {
-    setPrograms((prev) => [...prev, { program: '', totalClasses: '', unitValue: '' }]);
-  };
-
-  const removeProgramRow = (index: number) => {
-    setPrograms((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateProgram = (index: number, field: keyof ProgramEntry, value: string) => {
+  const addProgramRow = () => setPrograms((prev) => [...prev, { program: '', totalClasses: '', unitValue: '' }]);
+  const removeProgramRow = (index: number) => setPrograms((prev) => prev.filter((_, i) => i !== index));
+  const updateProgram = (index: number, field: keyof ProgramEntry, value: string) =>
     setPrograms((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
-  };
 
   const canAddMore = programs.length < PROGRAMS.length - existingPrograms.length;
 
-  const handleSubmit = async () => {
-    const validPrograms = programs.filter(
-      (p) => p.program && p.totalClasses && p.unitValue
-    );
-    if (!name || !cedula || validPrograms.length === 0) return;
+  const reset = () => {
+    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes('');
+    setPrograms([{ program: '', totalClasses: '', unitValue: '' }]);
+    setCedulaFound(false); setExistingCodigo(null);
+  };
 
-    for (const p of validPrograms) {
-      await onAdd({
-        name: name.toUpperCase(),
-        cedula: cedula.trim(),
-        program: p.program,
-        totalClasses: Number(p.totalClasses),
-        unitValue: Number(p.unitValue),
-        totalValue: Number(p.totalClasses) * Number(p.unitValue),
-        medicalNotes: medicalNotes.trim() || null,
-      });
+  const handleSubmit = async () => {
+    if (!name.trim()) { toast.error('El nombre es obligatorio'); return; }
+
+    const validPrograms = programs.filter((p) => p.program && p.totalClasses && p.unitValue);
+
+    const base = {
+      name: name.toUpperCase(),
+      cedula: cedula.trim() || null,
+      medicalNotes: medicalNotes.trim() || null,
+      phone: phone.trim() || null,
+      birthDate: birthDate || null,
+      age: age ? Number(age) : null,
+    };
+
+    if (validPrograms.length === 0) {
+      // Registro inicial sin programa
+      await onAdd({ ...base, program: null, totalClasses: 0, unitValue: 0, totalValue: 0 });
+    } else {
+      for (const p of validPrograms) {
+        await onAdd({
+          ...base,
+          program: p.program,
+          totalClasses: Number(p.totalClasses),
+          unitValue: Number(p.unitValue),
+          totalValue: Number(p.totalClasses) * Number(p.unitValue),
+        });
+      }
     }
 
-    setName('');
-    setCedula('');
-    setPrograms([{ program: '', totalClasses: '', unitValue: '' }]);
-    setCedulaFound(false);
-    setExistingCodigo(null);
+    reset();
     setOpen(false);
   };
 
@@ -111,7 +155,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   );
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <UserPlus className="h-4 w-4" />
@@ -120,7 +164,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-secondary">MATRICULAR CLIENTE</DialogTitle>
+          <DialogTitle className="text-2xl text-secondary">REGISTRAR CLIENTE</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid grid-cols-3 gap-3">
@@ -130,18 +174,18 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                 {displayedCodigo}
               </div>
               <p className="text-[10px] text-muted-foreground font-body">
-                {existingCodigo ? 'Código existente del cliente' : 'Se asignará automáticamente'}
+                {existingCodigo ? 'Código existente' : 'Auto-asignado'}
               </p>
             </div>
             <div className="grid gap-1.5">
-              <Label>Cédula</Label>
+              <Label>Cédula <span className="text-muted-foreground text-[10px]">(opcional)</span></Label>
               <Input
                 value={cedula}
                 onChange={(e) => handleCedulaChange(e.target.value)}
                 placeholder="Nº documento"
               />
               {cedulaFound && (
-                <p className="text-[11px] text-primary font-body">Cliente existente — se agregará programa</p>
+                <p className="text-[11px] text-primary font-body">Cliente existente</p>
               )}
             </div>
             <div className="grid gap-1.5">
@@ -152,6 +196,21 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                 placeholder="Nombre del cliente"
                 disabled={cedulaFound}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Celular</Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Número" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Fecha nacimiento</Label>
+              <Input type="date" value={birthDate} onChange={(e) => handleBirth(e.target.value)} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Edad</Label>
+              <Input type="number" min={0} max={120} value={age} onChange={(e) => setAge(e.target.value)} placeholder="Años" />
             </div>
           </div>
 
@@ -170,7 +229,9 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
           )}
 
           <div className="space-y-3">
-            <Label className="text-sm font-semibold">Programas a matricular</Label>
+            <Label className="text-sm font-semibold">
+              Programas a matricular <span className="text-muted-foreground text-[10px] font-normal">(opcional — puedes matricular después)</span>
+            </Label>
             {programs.map((entry, index) => {
               const total = Number(entry.totalClasses) * Number(entry.unitValue);
               return (
@@ -220,7 +281,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
             )}
           </div>
 
-          {programs.length > 0 && (
+          {grandTotal > 0 && (
             <div className="flex items-center justify-between rounded-lg bg-secondary/10 p-3">
               <span className="text-sm font-body font-semibold">Total General</span>
               <span className="text-lg font-bold font-body">${grandTotal.toLocaleString('es-CO')}</span>
@@ -228,7 +289,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
           )}
 
           <Button onClick={handleSubmit} className="w-full mt-2">
-            Matricular {programs.filter((p) => p.program).length > 1 ? `(${programs.filter((p) => p.program).length} programas)` : ''}
+            Guardar cliente
           </Button>
         </div>
       </DialogContent>
