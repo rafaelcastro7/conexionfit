@@ -86,6 +86,7 @@ const Index = () => {
                     }}
                   />
                   <AddClientDialog onAdd={addClient} existingClients={clients} />
+                  <ClientInfoDialog existingClients={clients} onSaved={refetch} />
                 </div>
               )}
             </div>
