@@ -16,6 +16,8 @@ export interface Client {
   id: string;
   name: string;
   cedula: string;
+  codigo: string;
+  status: 'active' | 'inactive';
   program: string;
   totalClasses: number;
   unitValue: number;
