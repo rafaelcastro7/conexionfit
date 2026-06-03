@@ -24,6 +24,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [cedula, setCedula] = useState('');
+  const [medicalNotes, setMedicalNotes] = useState('');
   const [programs, setPrograms] = useState<ProgramEntry[]>([
     { program: '', totalClasses: '', unitValue: '' },
   ]);
