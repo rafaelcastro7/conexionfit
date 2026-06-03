@@ -51,6 +51,11 @@ const ClientCard = ({ client, onRegister, onDelete, onToggleStatus, otherProgram
                 <CheckCircle2 className="h-3 w-3" /> Completado
               </Badge>
             )}
+            {client.medicalNotes && (
+              <Badge variant="outline" className="gap-1 text-[10px] border-rose-400 text-rose-500" title={client.medicalNotes}>
+                <HeartPulse className="h-3 w-3" /> Lesión/Patología
+              </Badge>
+            )}
           </div>
         </div>
         {otherPrograms.length > 0 && (
