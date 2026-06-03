@@ -28,6 +28,18 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     { program: '', totalClasses: '', unitValue: '' },
   ]);
   const [cedulaFound, setCedulaFound] = useState(false);
+  const [existingCodigo, setExistingCodigo] = useState<string | null>(null);
+
+  // Compute next sequential code from clients already loaded
+  const nextCodigo = (() => {
+    const nums = existingClients
+      .map((c) => parseInt(String(c.codigo || '').replace(/\D/g, ''), 10))
+      .filter((n) => !isNaN(n));
+    const max = nums.length ? Math.max(...nums) : 0;
+    return `C-${String(max + 1).padStart(4, '0')}`;
+  })();
+
+  const displayedCodigo = existingCodigo ?? nextCodigo;
 
   const handleCedulaChange = (val: string) => {
     setCedula(val);
@@ -35,10 +47,13 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (existing) {
       setName(existing.name);
       setCedulaFound(true);
+      setExistingCodigo(existing.codigo || null);
     } else {
       setCedulaFound(false);
+      setExistingCodigo(null);
     }
   };
+
 
   const existingPrograms = existingClients
     .filter((c) => c.cedula === cedula.trim())
