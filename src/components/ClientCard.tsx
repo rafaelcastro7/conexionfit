@@ -26,17 +26,26 @@ const ClientCard = ({ client, onRegister, onDelete, onToggleStatus, otherProgram
   const isInactive = client.status === 'inactive';
 
   return (
-    <Card className={`transition-all hover:shadow-md ${completed ? 'ring-2 ring-success/40' : ''}`}>
+    <Card className={`transition-all hover:shadow-md ${completed ? 'ring-2 ring-success/40' : ''} ${isInactive ? 'opacity-70 ring-2 ring-destructive/40' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="font-display text-xl text-secondary tracking-wide">{client.name}</h3>
-            <p className="text-xs text-muted-foreground font-body">CC: {client.cedula}</p>
+            <p className="text-xs text-muted-foreground font-body">
+              <span className="font-mono font-semibold text-secondary">{client.codigo || '—'}</span>
+              <span className="mx-1.5 opacity-50">·</span>
+              CC: {client.cedula}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <Badge variant="outline" className="border-primary/30 text-primary font-body text-xs">
               {client.program}
             </Badge>
+            {isInactive && (
+              <Badge variant="destructive" className="gap-1 text-[10px]">
+                <Lock className="h-3 w-3" /> Inactivo
+              </Badge>
+            )}
             {completed && (
               <Badge className="bg-success text-success-foreground gap-1">
                 <CheckCircle2 className="h-3 w-3" /> Completado
