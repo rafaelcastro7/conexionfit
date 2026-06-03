@@ -25,6 +25,7 @@ const ClientsTable = ({ clients, onRowClick }: Props) => {
               <th className="px-3 py-2.5">Código</th>
               <th className="px-3 py-2.5">Cumpleaños</th>
               <th className="px-3 py-2.5 text-center">Edad</th>
+              <th className="px-3 py-2.5 text-center">Categoría</th>
               <th className="px-3 py-2.5 text-right">Estado</th>
             </tr>
           </thead>
