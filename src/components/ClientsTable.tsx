@@ -14,7 +14,7 @@ const formatBirth = (iso?: string | null) => {
   return d.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: '2-digit' });
 };
 
-const ClientsTable = ({ clients, onRowClick, canEditCategory = false, onCategoryChange }: Props) => {
+const ClientsTable = ({ clients, onRowClick }: Props) => {
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
       <div className="overflow-x-auto">
