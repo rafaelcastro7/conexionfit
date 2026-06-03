@@ -100,6 +100,7 @@ export function useClients() {
       total_classes: client.totalClasses,
       unit_value: client.unitValue,
       total_value: client.totalValue,
+      medical_notes: client.medicalNotes ?? null,
     });
 
     if (error) {
