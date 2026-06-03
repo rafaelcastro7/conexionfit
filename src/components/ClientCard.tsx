@@ -109,8 +109,19 @@ const ClientCard = ({ client, onRegister, onDelete, onToggleStatus, otherProgram
 
         <div className="flex gap-2 pt-1">
           {canRegister && (
-            <Button onClick={() => onRegister(client.id)} disabled={completed} className="flex-1 gap-2" size="sm">
+            <Button onClick={() => onRegister(client.id)} disabled={completed || isInactive} className="flex-1 gap-2" size="sm">
               <CalendarCheck className="h-4 w-4" /> Registrar Asistencia
+            </Button>
+          )}
+          {canToggleStatus && onToggleStatus && (
+            <Button
+              onClick={() => onToggleStatus(client.cedula, isInactive ? 'active' : 'inactive')}
+              variant="outline"
+              size="sm"
+              title={isInactive ? 'Reactivar código' : 'Bloquear código (inactivar)'}
+              className={isInactive ? 'text-success hover:bg-success hover:text-success-foreground' : 'text-warning hover:bg-warning hover:text-warning-foreground'}
+            >
+              {isInactive ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
             </Button>
           )}
           {canDelete && (
