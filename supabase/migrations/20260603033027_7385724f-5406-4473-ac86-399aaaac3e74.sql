@@ -1,0 +1,11 @@
+
+ALTER TABLE public.clients ALTER COLUMN program DROP NOT NULL;
+ALTER TABLE public.clients ALTER COLUMN cedula DROP NOT NULL;
+ALTER TABLE public.clients ALTER COLUMN total_classes SET DEFAULT 0;
+ALTER TABLE public.clients ALTER COLUMN unit_value SET DEFAULT 0;
+ALTER TABLE public.clients ALTER COLUMN total_value SET DEFAULT 0;
+
+TRUNCATE TABLE public.attendance RESTART IDENTITY CASCADE;
+TRUNCATE TABLE public.client_prospects RESTART IDENTITY CASCADE;
+TRUNCATE TABLE public.clients RESTART IDENTITY CASCADE;
+ALTER SEQUENCE public.clients_codigo_seq RESTART WITH 1;

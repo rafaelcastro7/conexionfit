@@ -102,16 +102,16 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
       if (error) { toast.error('Error al guardar: ' + error.message); return; }
       toast.success('Información actualizada');
     } else {
-      const { error } = await supabase.from('client_prospects').insert({
-        full_name: fullName.toUpperCase(),
+      const { error } = await supabase.from('clients').insert({
+        name: fullName.toUpperCase(),
         phone: phone || null,
         birth_date: birthDate || null,
         age: age ? Number(age) : null,
         medical_notes: medicalNotes.trim() || null,
-      });
+      } as any);
       setSaving(false);
       if (error) { toast.error('Error al guardar: ' + error.message); return; }
-      toast.success('Pre-registro guardado');
+      toast.success('Cliente creado — código asignado automáticamente');
     }
 
     reset();
@@ -180,7 +180,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
 
           {mode === 'new' && (
             <p className="text-xs text-muted-foreground -mb-1">
-              Se guardará como pre-registro. Cuando se matricule, completa cédula y programa en "Nuevo Cliente".
+              Se creará un nuevo cliente con código auto-asignado. Programa y valores se completan luego en "Nuevo Cliente".
             </p>
           )}
 

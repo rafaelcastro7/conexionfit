@@ -102,7 +102,7 @@ export type Database = {
           age: number | null
           birth_date: string | null
           category: string | null
-          cedula: string
+          cedula: string | null
           codigo: string
           created_at: string
           email: string | null
@@ -111,7 +111,7 @@ export type Database = {
           medical_notes: string | null
           name: string
           phone: string | null
-          program: string
+          program: string | null
           sheet_notes: string | null
           status: string
           total_classes: number
@@ -123,7 +123,7 @@ export type Database = {
           age?: number | null
           birth_date?: string | null
           category?: string | null
-          cedula: string
+          cedula?: string | null
           codigo?: string
           created_at?: string
           email?: string | null
@@ -132,7 +132,7 @@ export type Database = {
           medical_notes?: string | null
           name: string
           phone?: string | null
-          program: string
+          program?: string | null
           sheet_notes?: string | null
           status?: string
           total_classes?: number
@@ -144,7 +144,7 @@ export type Database = {
           age?: number | null
           birth_date?: string | null
           category?: string | null
-          cedula?: string
+          cedula?: string | null
           codigo?: string
           created_at?: string
           email?: string | null
@@ -153,7 +153,7 @@ export type Database = {
           medical_notes?: string | null
           name?: string
           phone?: string | null
-          program?: string
+          program?: string | null
           sheet_notes?: string | null
           status?: string
           total_classes?: number
