@@ -1,19 +1,5 @@
-export interface AttendanceRecord {
-  date: string;
-  classNumber: number;
-}
-
-export interface Client {
-  id: string;
-  name: string;
-  cedula: string;
-  program: string;
-  totalClasses: number;
-  unitValue: number;
-  totalValue: number;
-  attendance: AttendanceRecord[];
-}
-
+// Tipos de cliente activos viven en src/hooks/useClients.ts (Client, AttendanceRecord).
+// Este módulo solo expone constantes compartidas para evitar duplicación.
 export const PROGRAMS = [
   'FUNCIONAL',
   'PILATEX',
@@ -24,3 +10,5 @@ export const PROGRAMS = [
   'GAP',
   'BOXEO',
 ] as const;
+
+export type Program = (typeof PROGRAMS)[number];
