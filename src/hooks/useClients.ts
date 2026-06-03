@@ -149,6 +149,20 @@ export function useClients() {
     await fetchClients();
   };
 
+  const setClientStatus = async (cedula: string, status: 'active' | 'inactive') => {
+    // Apply to all program rows of the same client (same cedula)
+    const { error } = await supabase
+      .from('clients')
+      .update({ status })
+      .eq('cedula', cedula);
+    if (error) {
+      toast.error('Error al actualizar estado: ' + error.message);
+      return;
+    }
+    toast.success(status === 'inactive' ? 'Cliente desactivado — código bloqueado' : 'Cliente reactivado');
+    await fetchClients();
+  };
+
   return {
     clients,
     loading,
@@ -156,6 +170,7 @@ export function useClients() {
     registerAttendance,
     registerAttendanceWithDate,
     deleteClient,
+    setClientStatus,
     refetch: fetchClients,
   };
 }
