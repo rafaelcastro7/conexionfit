@@ -16,7 +16,7 @@ interface ProgramEntry {
 }
 
 interface Props {
-  onAdd: (client: { name: string; cedula: string; program: string; totalClasses: number; unitValue: number; totalValue: number }) => void;
+  onAdd: (client: { name: string; cedula: string; program: string; totalClasses: number; unitValue: number; totalValue: number; medicalNotes?: string | null }) => void;
   existingClients: Client[];
 }
 

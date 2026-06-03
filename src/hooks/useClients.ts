@@ -23,6 +23,10 @@ export interface Client {
   unitValue: number;
   totalValue: number;
   attendance: AttendanceRecord[];
+  medicalNotes?: string | null;
+  phone?: string | null;
+  birthDate?: string | null;
+  age?: number | null;
 }
 
 export function useClients() {
