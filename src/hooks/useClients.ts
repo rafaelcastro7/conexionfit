@@ -27,7 +27,10 @@ export interface Client {
   phone?: string | null;
   birthDate?: string | null;
   age?: number | null;
+  category?: 'ORO' | 'PLATA' | 'DIAMANTE' | 'BRONCE' | null;
 }
+
+export type ClientCategory = 'ORO' | 'PLATA' | 'DIAMANTE' | 'BRONCE';
 
 export function useClients() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -71,6 +74,7 @@ export function useClients() {
       phone: c.phone ?? null,
       birthDate: c.birth_date ?? null,
       age: c.age ?? null,
+      category: (c.category ?? null) as Client['category'],
       attendance: (attendanceData || [])
         .filter((a: any) => a.client_id === c.id)
         .map((a: any) => ({
@@ -172,6 +176,13 @@ export function useClients() {
     await fetchClients();
   };
 
+  const setClientCategory = async (cedula: string, category: ClientCategory | null) => {
+    const { error } = await supabase.from('clients').update({ category }).eq('cedula', cedula);
+    if (error) { toast.error('Error al actualizar categoría: ' + error.message); return; }
+    toast.success('Categoría actualizada');
+    await fetchClients();
+  };
+
   return {
     clients,
     loading,
@@ -180,6 +191,7 @@ export function useClients() {
     registerAttendanceWithDate,
     deleteClient,
     setClientStatus,
+    setClientCategory,
     refetch: fetchClients,
   };
 }
