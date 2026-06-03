@@ -23,6 +23,7 @@ const Index = () => {
   const { clients, loading, addClient, registerAttendance, deleteClient, setClientStatus, refetch } = useClients();
   const { role } = useAuth();
   const [search, setSearch] = useState('');
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   useEffect(() => {
     const fn = () => {
