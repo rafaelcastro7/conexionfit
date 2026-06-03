@@ -1,6 +1,8 @@
 import Header from '@/components/Header';
 import StatsBar from '@/components/StatsBar';
 import ClientCard from '@/components/ClientCard';
+import ClientRow from '@/components/ClientRow';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AddClientDialog from '@/components/AddClientDialog';
 import ImportClientsDialog from '@/components/ImportClientsDialog';
 import ClientInfoDialog from '@/components/ClientInfoDialog';
