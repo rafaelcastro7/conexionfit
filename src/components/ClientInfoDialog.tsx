@@ -180,7 +180,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
 
           {mode === 'new' && (
             <p className="text-xs text-muted-foreground -mb-1">
-              Se guardará como pre-registro. Cuando se matricule, completa cédula y programa en "Nuevo Cliente".
+              Se creará un nuevo cliente con código auto-asignado. Programa y valores se completan luego en "Nuevo Cliente".
             </p>
           )}
 
