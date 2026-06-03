@@ -230,11 +230,14 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
               </Select>
             </div>
             <div className="col-span-2 grid gap-1.5">
-              <Label>Observaciones {hasPathology === 'si' && <span className="text-destructive">*</span>}</Label>
+              <Label>
+                {hasPathology === 'si' ? '¿Cuál es la patología?' : 'Observaciones'}
+                {hasPathology === 'si' && <span className="text-destructive"> *</span>}
+              </Label>
               <Input
                 value={medicalNotes}
                 onChange={(e) => setMedicalNotes(e.target.value)}
-                placeholder={hasPathology === 'si' ? 'Detalle la patología' : 'Sin patología'}
+                placeholder={hasPathology === 'si' ? 'Describa cuál es la patología (ej: lesión de rodilla, hipertensión...)' : 'Sin patología'}
                 disabled={hasPathology !== 'si'}
               />
             </div>
