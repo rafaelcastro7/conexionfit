@@ -67,6 +67,10 @@ export function useClients() {
       totalClasses: c.total_classes,
       unitValue: c.unit_value,
       totalValue: c.total_value,
+      medicalNotes: c.medical_notes ?? null,
+      phone: c.phone ?? null,
+      birthDate: c.birth_date ?? null,
+      age: c.age ?? null,
       attendance: (attendanceData || [])
         .filter((a: any) => a.client_id === c.id)
         .map((a: any) => ({
