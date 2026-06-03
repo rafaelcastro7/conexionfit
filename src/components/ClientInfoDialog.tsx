@@ -69,13 +69,13 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
   };
 
   const reset = () => {
-    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge('');
+    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes('');
     setMode('registered');
   };
 
   const changeMode = (m: Mode) => {
     setMode(m);
-    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge('');
+    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes('');
   };
 
   const handleSubmit = async () => {
