@@ -128,7 +128,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     const base = {
       name: name.toUpperCase(),
       cedula: cedula.trim() || null,
-      medicalNotes: medicalNotes.trim() || null,
+      medicalNotes: finalMedicalNotes || null,
       phone: phone.trim() || null,
       birthDate: birthDate || null,
       age: age ? Number(age) : null,
