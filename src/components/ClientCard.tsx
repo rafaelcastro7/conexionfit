@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CalendarCheck, Trash2, CheckCircle2, Layers, Lock, Unlock } from 'lucide-react';
+import { CalendarCheck, Trash2, CheckCircle2, Layers, Lock, Unlock, HeartPulse } from 'lucide-react';
 
 interface Props {
   client: Client;
