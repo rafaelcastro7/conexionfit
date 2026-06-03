@@ -96,6 +96,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
         phone: phone || null,
         birth_date: birthDate || null,
         age: age ? Number(age) : null,
+        medical_notes: medicalNotes.trim() || null,
       }).eq('cedula', selected.cedula);
       setSaving(false);
       if (error) { toast.error('Error al guardar: ' + error.message); return; }
@@ -106,6 +107,7 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
         phone: phone || null,
         birth_date: birthDate || null,
         age: age ? Number(age) : null,
+        medical_notes: medicalNotes.trim() || null,
       });
       setSaving(false);
       if (error) { toast.error('Error al guardar: ' + error.message); return; }
