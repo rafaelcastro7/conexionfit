@@ -95,8 +95,6 @@ const Index = () => {
             <ClientsTable
               clients={filtered}
               onRowClick={(id) => setDetailId(id)}
-              canEditCategory={role === 'admin'}
-              onCategoryChange={setClientCategory}
             />
 
 
