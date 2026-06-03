@@ -101,6 +101,7 @@ export type Database = {
         Row: {
           age: number | null
           birth_date: string | null
+          category: string | null
           cedula: string
           codigo: string
           created_at: string
@@ -121,6 +122,7 @@ export type Database = {
         Insert: {
           age?: number | null
           birth_date?: string | null
+          category?: string | null
           cedula: string
           codigo?: string
           created_at?: string
@@ -141,6 +143,7 @@ export type Database = {
         Update: {
           age?: number | null
           birth_date?: string | null
+          category?: string | null
           cedula?: string
           codigo?: string
           created_at?: string

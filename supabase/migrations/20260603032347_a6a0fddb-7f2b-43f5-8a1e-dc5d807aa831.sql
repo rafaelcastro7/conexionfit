@@ -1,0 +1,2 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS category text;
+ALTER TABLE public.clients ADD CONSTRAINT clients_category_check CHECK (category IS NULL OR category IN ('ORO','PLATA','DIAMANTE','BRONCE'));
