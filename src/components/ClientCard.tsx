@@ -119,7 +119,7 @@ const ClientCard = ({ client, onRegister, onDelete, onToggleStatus, otherProgram
               variant="outline"
               size="sm"
               title={isInactive ? 'Reactivar código' : 'Bloquear código (inactivar)'}
-              className={isInactive ? 'text-success hover:bg-success hover:text-success-foreground' : 'text-warning hover:bg-warning hover:text-warning-foreground'}
+              className={isInactive ? 'text-success hover:bg-success hover:text-success-foreground' : 'text-secondary hover:bg-secondary hover:text-secondary-foreground'}
             >
               {isInactive ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
             </Button>
