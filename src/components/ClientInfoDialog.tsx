@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClipboardList, Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,8 @@ interface Props {
   existingClients: Client[];
   onSaved?: () => void;
 }
+
+type Mode = 'registered' | 'new';
 
 const calcAge = (iso: string): number | null => {
   if (!iso) return null;
@@ -29,6 +32,7 @@ const calcAge = (iso: string): number | null => {
 
 const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<Mode>('registered');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selected, setSelected] = useState<Client | null>(null);
   const [fullName, setFullName] = useState('');
@@ -37,7 +41,6 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
   const [age, setAge] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
-  // Unique clients by cédula (one row per person, ignoring multiple programs)
   const uniqueClients = useMemo(() => {
     const map = new Map<string, Client>();
     for (const c of existingClients) {
@@ -65,31 +68,48 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
 
   const reset = () => {
     setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge('');
+    setMode('registered');
+  };
+
+  const changeMode = (m: Mode) => {
+    setMode(m);
+    setSelected(null); setFullName(''); setPhone(''); setBirthDate(''); setAge('');
   };
 
   const handleSubmit = async () => {
-    if (!selected) {
-      toast.error('Selecciona un cliente');
-      return;
-    }
     if (!fullName.trim()) {
       toast.error('El nombre es obligatorio');
       return;
     }
     setSaving(true);
-    const payload = {
-      name: fullName.toUpperCase(),
-      phone: phone || null,
-      birth_date: birthDate || null,
-      age: age ? Number(age) : null,
-    };
-    const { error } = await supabase.from('clients').update(payload).eq('cedula', selected.cedula);
-    setSaving(false);
-    if (error) {
-      toast.error('Error al guardar: ' + error.message);
-      return;
+
+    if (mode === 'registered') {
+      if (!selected) {
+        setSaving(false);
+        toast.error('Selecciona un cliente');
+        return;
+      }
+      const { error } = await supabase.from('clients').update({
+        name: fullName.toUpperCase(),
+        phone: phone || null,
+        birth_date: birthDate || null,
+        age: age ? Number(age) : null,
+      }).eq('cedula', selected.cedula);
+      setSaving(false);
+      if (error) { toast.error('Error al guardar: ' + error.message); return; }
+      toast.success('Información actualizada');
+    } else {
+      const { error } = await supabase.from('client_prospects').insert({
+        full_name: fullName.toUpperCase(),
+        phone: phone || null,
+        birth_date: birthDate || null,
+        age: age ? Number(age) : null,
+      });
+      setSaving(false);
+      if (error) { toast.error('Error al guardar: ' + error.message); return; }
+      toast.success('Pre-registro guardado');
     }
-    toast.success('Información actualizada');
+
     reset();
     setOpen(false);
     onSaved?.();
@@ -108,42 +128,57 @@ const ClientInfoDialog = ({ existingClients, onSaved }: Props) => {
           <DialogTitle className="text-2xl text-secondary">INFORMACIÓN INICIAL DEL CLIENTE</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-2">
-          <div className="grid gap-1.5">
-            <Label>Cliente</Label>
-            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className={cn('justify-between font-normal', !selected && 'text-muted-foreground')}
-                >
-                  {selected ? `${selected.codigo} — ${selected.name}` : 'Selecciona un cliente matriculado'}
-                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0 pointer-events-auto" align="start">
-                <Command>
-                  <CommandInput placeholder="Buscar por nombre o código..." />
-                  <CommandList>
-                    <CommandEmpty>Sin resultados</CommandEmpty>
-                    <CommandGroup>
-                      {uniqueClients.map((c) => (
-                        <CommandItem
-                          key={c.cedula}
-                          value={`${c.codigo} ${c.name}`}
-                          onSelect={() => selectClient(c)}
-                        >
-                          <Check className={cn('mr-2 h-4 w-4', selected?.cedula === c.cedula ? 'opacity-100' : 'opacity-0')} />
-                          <span className="font-mono text-xs mr-2">{c.codigo}</span>
-                          <span>{c.name}</span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+          <Tabs value={mode} onValueChange={(v) => changeMode(v as Mode)}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="registered">Cliente registrado</TabsTrigger>
+              <TabsTrigger value="new">Cliente nuevo</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {mode === 'registered' && (
+            <div className="grid gap-1.5">
+              <Label>Cliente</Label>
+              <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn('justify-between font-normal', !selected && 'text-muted-foreground')}
+                  >
+                    {selected ? `${selected.codigo} — ${selected.name}` : 'Selecciona un cliente matriculado'}
+                    <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0 pointer-events-auto" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar por nombre o código..." />
+                    <CommandList>
+                      <CommandEmpty>Sin resultados</CommandEmpty>
+                      <CommandGroup>
+                        {uniqueClients.map((c) => (
+                          <CommandItem
+                            key={c.cedula}
+                            value={`${c.codigo} ${c.name}`}
+                            onSelect={() => selectClient(c)}
+                          >
+                            <Check className={cn('mr-2 h-4 w-4', selected?.cedula === c.cedula ? 'opacity-100' : 'opacity-0')} />
+                            <span className="font-mono text-xs mr-2">{c.codigo}</span>
+                            <span>{c.name}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
+          {mode === 'new' && (
+            <p className="text-xs text-muted-foreground -mb-1">
+              Se guardará como pre-registro. Cuando se matricule, completa cédula y programa en "Nuevo Cliente".
+            </p>
+          )}
 
           <div className="grid gap-1.5">
             <Label>Nombre completo</Label>
