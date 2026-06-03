@@ -53,6 +53,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [birthDate, setBirthDate] = useState('');
   const [age, setAge] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
+  const [hasPathology, setHasPathology] = useState<'si' | 'no' | ''>('');
   const [programs, setPrograms] = useState<ProgramEntry[]>([
     { program: '', totalClasses: '', unitValue: '' },
   ]);
@@ -79,6 +80,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
       setBirthDate(existing.birthDate ?? '');
       setAge(existing.age ? String(existing.age) : '');
       setMedicalNotes(existing.medicalNotes ?? '');
+      setHasPathology(existing.medicalNotes ? 'si' : 'no');
       setCedulaFound(true);
       setExistingCodigo(existing.codigo || null);
     } else {
@@ -111,20 +113,22 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const canAddMore = programs.length < PROGRAMS.length - existingPrograms.length;
 
   const reset = () => {
-    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes('');
+    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setHasPathology('');
     setPrograms([{ program: '', totalClasses: '', unitValue: '' }]);
     setCedulaFound(false); setExistingCodigo(null);
   };
 
   const handleSubmit = async () => {
     if (!name.trim()) { toast.error('El nombre es obligatorio'); return; }
+    if (hasPathology === 'si' && !medicalNotes.trim()) { toast.error('Describe la patología en observaciones'); return; }
+    const finalMedicalNotes = hasPathology === 'si' ? medicalNotes.trim() : '';
 
     const validPrograms = programs.filter((p) => p.program && p.totalClasses && p.unitValue);
 
     const base = {
       name: name.toUpperCase(),
       cedula: cedula.trim() || null,
-      medicalNotes: medicalNotes.trim() || null,
+      medicalNotes: finalMedicalNotes || null,
       phone: phone.trim() || null,
       birthDate: birthDate || null,
       age: age ? Number(age) : null,
@@ -214,10 +218,28 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
             </div>
           </div>
 
-          <div className="grid gap-1.5">
-            <Label>¿Tiene alguna lesión o patología?</Label>
-            <Input value={medicalNotes} onChange={(e) => setMedicalNotes(e.target.value)} placeholder="Describa lesión o patología (opcional)" />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="grid gap-1.5">
+              <Label>¿Tiene lesión o patología?</Label>
+              <Select value={hasPathology} onValueChange={(v) => { setHasPathology(v as 'si' | 'no'); if (v === 'no') setMedicalNotes(''); }}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="si">Sí</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2 grid gap-1.5">
+              <Label>Observaciones {hasPathology === 'si' && <span className="text-destructive">*</span>}</Label>
+              <Input
+                value={medicalNotes}
+                onChange={(e) => setMedicalNotes(e.target.value)}
+                placeholder={hasPathology === 'si' ? 'Detalle la patología' : 'Sin patología'}
+                disabled={hasPathology !== 'si'}
+              />
+            </div>
           </div>
+
 
           {existingPrograms.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
