@@ -57,6 +57,8 @@ export function useClients() {
       id: c.id,
       name: c.name,
       cedula: c.cedula,
+      codigo: c.codigo ?? '',
+      status: (c.status ?? 'active') as 'active' | 'inactive',
       program: c.program,
       totalClasses: c.total_classes,
       unitValue: c.unit_value,
