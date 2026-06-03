@@ -66,25 +66,6 @@ const ClientsTable = ({ clients, onRowClick }: Props) => {
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <div className="inline-flex items-center gap-1.5">
-                      {inactive && (
-                        <Badge variant="destructive" className="gap-1 text-[10px]">
-                          <Lock className="h-3 w-3" /> Inactivo
-                        </Badge>
-                      )}
-                      {completed && (
-                        <Badge className="bg-success text-success-foreground gap-1 text-[10px]">
-                          <CheckCircle2 className="h-3 w-3" /> {c.attendance.length}/{c.totalClasses}
-                        </Badge>
-                      )}
-                      {!completed && !inactive && (
-                        <span className="text-[11px] text-muted-foreground font-body">
-                          {c.attendance.length}/{c.totalClasses}
-                        </span>
-                      )}
-                    </div>
-                  </td>
                 </tr>
               );
             })}

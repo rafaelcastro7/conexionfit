@@ -19,7 +19,7 @@ const CLIENTS_REFRESH = 'conexionfit:clients-refresh';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { clients, loading, addClient, registerAttendance, deleteClient, setClientStatus, setClientCategory, refetch } = useClients();
+  const { clients, loading, addClient, registerAttendance, deleteClient, setClientStatus, refetch } = useClients();
   const { role } = useAuth();
   const [search, setSearch] = useState('');
   const [detailId, setDetailId] = useState<string | null>(null);
