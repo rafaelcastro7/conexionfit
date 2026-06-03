@@ -1,23 +1,11 @@
-import { Client, ClientCategory } from '@/hooks/useClients';
+import { Client } from '@/hooks/useClients';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Lock, HeartPulse, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   clients: Client[];
   onRowClick: (id: string) => void;
-  canEditCategory?: boolean;
-  onCategoryChange?: (cedula: string, category: ClientCategory | null) => void;
 }
-
-const CATEGORIES: ClientCategory[] = ['DIAMANTE', 'ORO', 'PLATA', 'BRONCE'];
-
-const categoryClasses: Record<ClientCategory, string> = {
-  DIAMANTE: 'bg-sky-100 text-sky-700 border-sky-300 dark:bg-sky-950 dark:text-sky-300',
-  ORO: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300',
-  PLATA: 'bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-200',
-  BRONCE: 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950 dark:text-orange-300',
-};
 
 const formatBirth = (iso?: string | null) => {
   if (!iso) return '—';
