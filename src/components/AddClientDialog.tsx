@@ -119,7 +119,9 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   };
 
   const handleSubmit = async () => {
+    if (!name.trim()) { toast.error('El nombre es obligatorio'); return; }
     if (hasPathology === 'si' && !medicalNotes.trim()) { toast.error('Describe la patología en observaciones'); return; }
+    const finalMedicalNotes = hasPathology === 'si' ? medicalNotes.trim() : '';
 
     const validPrograms = programs.filter((p) => p.program && p.totalClasses && p.unitValue);
 
