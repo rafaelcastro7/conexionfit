@@ -31,7 +31,6 @@ const ClientsTable = ({ clients, onRowClick }: Props) => {
           </thead>
           <tbody>
             {clients.map((c) => {
-              const completed = c.attendance.length >= c.totalClasses;
               const inactive = c.status === 'inactive';
               return (
                 <tr
