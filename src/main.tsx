@@ -2,11 +2,11 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// Register Service Worker for PWA
+// Desregistrar cualquier Service Worker previo (cacheaba HTML roto tras deploys).
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
+  navigator.serviceWorker.getRegistrations().then((regs) => {
+    regs.forEach((reg) => reg.unregister().catch(() => {}));
+  }).catch(() => {});
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
