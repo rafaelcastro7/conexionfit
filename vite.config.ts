@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const supabaseUrl = env.VITE_SUPABASE_URL || "https://tycwbzulmsqodojmfuxv.supabase.co";
-  const supabasePublishableKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InR5Y3dienVsbXNxb2Rvam1mdXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNDkyNTMsImV4cCI6MjA5MDYyNTI1M30.eiC1wtb6YEcAHL6Ivt_taxINwslSY-ugbhXA-uO3Uqs";
+  const supabasePublishableKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5Y3dienVsbXNxb2Rvam1mdXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNDkyNTMsImV4cCI6MjA5MDYyNTI1M30.eiC1wtb6YEcAHL6Ivt_taxINwslSY-ugbhXA-uO3Uqs";
 
   return {
     server: {
