@@ -30,7 +30,7 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
     return <Navigate to="/portal" replace />;
   }
 
