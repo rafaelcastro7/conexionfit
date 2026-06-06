@@ -21,36 +21,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
       .maybeSingle();
-    setRole(data?.role || null);
+
+    if (error) {
+      console.error('Error fetching user role:', error.message);
+      return null;
+    }
+
+    return data?.role || null;
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          setTimeout(() => fetchRole(session.user.id), 0);
-        } else {
-          setRole(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const applySession = async (session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchRole(session.user.id);
-      }
+      setRole(session?.user ? await fetchRole(session.user.id) : null);
       setLoading(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoading(true);
+      setTimeout(() => {
+        applySession(session).catch((error) => {
+          console.error('Error applying auth session:', error);
+          setSession(null);
+          setUser(null);
+          setRole(null);
+          setLoading(false);
+        });
+      }, 0);
     });
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => session ? supabase.auth.getUser().then(({ data, error }) => {
+        if (error || !data.user) return applySession(null);
+        return applySession({ ...session, user: data.user });
+      }) : applySession(null))
+      .catch((error) => {
+        console.error('Error loading auth session:', error);
+        setSession(null);
+        setUser(null);
+        setRole(null);
+        setLoading(false);
+      });
 
     return () => subscription.unsubscribe();
   }, []);
