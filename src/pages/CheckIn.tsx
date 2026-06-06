@@ -37,30 +37,15 @@ const CheckIn = () => {
       return;
     }
     (async () => {
-      // Look up class metadata via the public-safe view (no token exposed)
-      // We don't filter by token here because anon cannot read it; instead
-      // we rely on the secure check-in RPC to validate the token at submit.
-      // To show class details we ask the server for them via a tiny RPC call:
-      const { data, error } = await (supabase.rpc as any)('checkin_via_qr', {
+      const { data, error } = await (supabase.rpc as any)('get_class_by_checkin_token', {
         _token: token,
-        _cedula: '__lookup__',
       });
-      // The RPC returns the class title even when cedula is invalid, which we
-      // can use to display class info. We treat the call purely as metadata.
       const row = (data as any[])?.[0];
-      if (error || !row || !row.class_title) {
+      if (error || !row) {
         setStatus('invalid');
         return;
       }
-      // Fetch full details via secure public RPC
-      const { data: allClasses } = await supabase.rpc('list_public_classes', { _from: null as any });
-      const classRow = ((allClasses as any[]) || []).find((c: any) => c.title === row.class_title);
-
-      if (!classRow) {
-        setStatus('invalid');
-        return;
-      }
-      setClassInfo(classRow as unknown as ClassInfo);
+      setClassInfo(row as ClassInfo);
       setStatus('ready');
     })();
   }, [token]);
