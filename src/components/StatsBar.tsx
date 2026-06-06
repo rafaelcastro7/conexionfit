@@ -7,7 +7,7 @@ const StatsBar = ({ clients }: { clients: Client[] }) => {
   const totalClients = clients.length;
   const totalAttendance = clients.reduce((s, c) => s + c.attendance.length, 0);
   const totalRevenue = clients.reduce((s, c) => s + c.attendance.length * c.unitValue, 0);
-  const completed = clients.filter((c) => c.attendance.length >= c.totalClasses).length;
+  const completed = clients.filter((c) => c.totalClasses > 0 && c.attendance.length >= c.totalClasses).length;
 
   const stats = [
     { icon: Users, label: 'Clientes', value: totalClients },
