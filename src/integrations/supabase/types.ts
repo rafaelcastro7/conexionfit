@@ -522,6 +522,20 @@ export type Database = {
           id: string
         }[]
       }
+      get_class_by_checkin_token: {
+        Args: { _token: string }
+        Returns: {
+          class_date: string
+          description: string
+          end_time: string
+          id: string
+          instructor: string
+          max_capacity: number
+          program: string
+          start_time: string
+          title: string
+        }[]
+      }
       get_class_counts: {
         Args: { _class_id: string }
         Returns: {
