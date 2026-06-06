@@ -1,0 +1,10 @@
+GRANT EXECUTE ON FUNCTION public.get_client_by_cedula(text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_attendance_by_cedula(text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_reservations_by_cedula(text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_waitlist_by_cedula(text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.list_public_classes(date) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_public_class(uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_class_counts(uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_reservation(uuid, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.join_waitlist(uuid, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.checkin_via_qr(uuid, text) TO anon, authenticated;
