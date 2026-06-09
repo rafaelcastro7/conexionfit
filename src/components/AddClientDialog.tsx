@@ -4,15 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PROGRAMS } from '@/types/client';
 import { Client } from '@/hooks/useClients';
 import { UserPlus, Plus, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
-interface ProgramEntry {
-  program: string;
-  totalClasses: string;
+const PACKAGE_OPTIONS = [1, 5, 10, 20] as const;
+
+interface PackageEntry {
+  packageSize: string; // '1' | '5' | '10' | '20'
   unitValue: string;
 }
 
@@ -54,8 +53,8 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [age, setAge] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
   const [hasPathology, setHasPathology] = useState<'si' | 'no' | ''>('');
-  const [programs, setPrograms] = useState<ProgramEntry[]>([
-    { program: '', totalClasses: '', unitValue: '' },
+  const [packages, setPackages] = useState<PackageEntry[]>([
+    { packageSize: '', unitValue: '' },
   ]);
   const [cedulaFound, setCedulaFound] = useState(false);
   const [existingCodigo, setExistingCodigo] = useState<string | null>(null);
@@ -95,26 +94,14 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (a !== null && a >= 0 && a < 120) setAge(String(a));
   };
 
-  const existingPrograms = existingClients
-    .filter((c) => c.cedula === cedula.trim())
-    .map((c) => c.program)
-    .filter(Boolean);
-
-  const availablePrograms = (index: number) => {
-    const selectedInForm = programs.map((p, i) => (i !== index ? p.program : '')).filter(Boolean);
-    return PROGRAMS.filter((p) => !existingPrograms.includes(p) && !selectedInForm.includes(p));
-  };
-
-  const addProgramRow = () => setPrograms((prev) => [...prev, { program: '', totalClasses: '', unitValue: '' }]);
-  const removeProgramRow = (index: number) => setPrograms((prev) => prev.filter((_, i) => i !== index));
-  const updateProgram = (index: number, field: keyof ProgramEntry, value: string) =>
-    setPrograms((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
-
-  const canAddMore = programs.length < PROGRAMS.length - existingPrograms.length;
+  const addPackageRow = () => setPackages((prev) => [...prev, { packageSize: '', unitValue: '' }]);
+  const removePackageRow = (index: number) => setPackages((prev) => prev.filter((_, i) => i !== index));
+  const updatePackage = (index: number, field: keyof PackageEntry, value: string) =>
+    setPackages((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
 
   const reset = () => {
     setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setHasPathology('');
-    setPrograms([{ program: '', totalClasses: '', unitValue: '' }]);
+    setPackages([{ packageSize: '', unitValue: '' }]);
     setCedulaFound(false); setExistingCodigo(null);
   };
 
@@ -123,7 +110,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (hasPathology === 'si' && !medicalNotes.trim()) { toast.error('Describe la patología en observaciones'); return; }
     const finalMedicalNotes = hasPathology === 'si' ? medicalNotes.trim() : '';
 
-    const validPrograms = programs.filter((p) => p.program && p.totalClasses && p.unitValue);
+    const validPackages = packages.filter((p) => p.packageSize && p.unitValue);
 
     const base = {
       name: name.toUpperCase(),
@@ -134,17 +121,17 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
       age: age ? Number(age) : null,
     };
 
-    if (validPrograms.length === 0) {
-      // Registro inicial sin programa
+    if (validPackages.length === 0) {
       await onAdd({ ...base, program: null, totalClasses: 0, unitValue: 0, totalValue: 0 });
     } else {
-      for (const p of validPrograms) {
+      for (const p of validPackages) {
+        const size = Number(p.packageSize);
         await onAdd({
           ...base,
-          program: p.program,
-          totalClasses: Number(p.totalClasses),
+          program: null,
+          totalClasses: size,
           unitValue: Number(p.unitValue),
-          totalValue: Number(p.totalClasses) * Number(p.unitValue),
+          totalValue: size * Number(p.unitValue),
         });
       }
     }
@@ -153,10 +140,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     setOpen(false);
   };
 
-  const grandTotal = programs.reduce(
-    (sum, p) => sum + Number(p.totalClasses) * Number(p.unitValue),
+  const grandTotal = packages.reduce(
+    (sum, p) => sum + Number(p.packageSize) * Number(p.unitValue),
     0
   );
+
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
@@ -247,49 +235,40 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
           </div>
 
 
-          {existingPrograms.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">Programas actuales:</span>
-              {existingPrograms.map((p) => (
-                <Badge key={p} variant="secondary" className="text-[10px] font-body">{p}</Badge>
-              ))}
-            </div>
-          )}
-
           <div className="space-y-3">
             <Label className="text-sm font-semibold">
-              Programas a matricular <span className="text-muted-foreground text-[10px] font-normal">(opcional — puedes matricular después)</span>
+              Paquetes a matricular <span className="text-muted-foreground text-[10px] font-normal">(opcional — el programa se asigna en otro módulo)</span>
             </Label>
-            {programs.map((entry, index) => {
-              const total = Number(entry.totalClasses) * Number(entry.unitValue);
+            {packages.map((entry, index) => {
+              const size = Number(entry.packageSize);
+              const total = size * Number(entry.unitValue);
               return (
                 <div key={index} className="rounded-lg border border-border p-3 space-y-2 bg-muted/30">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-body text-muted-foreground">Programa {index + 1}</span>
-                    {programs.length > 1 && (
-                      <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10" onClick={() => removeProgramRow(index)}>
+                    <span className="text-xs font-body text-muted-foreground">Paquete {index + 1}</span>
+                    {packages.length > 1 && (
+                      <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10" onClick={() => removePackageRow(index)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     )}
                   </div>
-                  <Select value={entry.program} onValueChange={(v) => updateProgram(index, 'program', v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Seleccionar programa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availablePrograms(index).map((p) => (
-                        <SelectItem key={p} value={p}>{p}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="grid gap-1">
-                      <Label className="text-[10px]">Nº Clases</Label>
-                      <Input type="number" className="h-8 text-sm" value={entry.totalClasses} onChange={(e) => updateProgram(index, 'totalClasses', e.target.value)} />
+                      <Label className="text-[10px]">Tipo de paquete</Label>
+                      <Select value={entry.packageSize} onValueChange={(v) => updatePackage(index, 'packageSize', v)}>
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Seleccionar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PACKAGE_OPTIONS.map((n) => (
+                            <SelectItem key={n} value={String(n)}>{n} {n === 1 ? 'clase' : 'clases'}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Valor Unitario</Label>
-                      <Input type="number" className="h-8 text-sm" value={entry.unitValue} onChange={(e) => updateProgram(index, 'unitValue', e.target.value)} />
+                      <Input type="number" className="h-8 text-sm" value={entry.unitValue} onChange={(e) => updatePackage(index, 'unitValue', e.target.value)} />
                     </div>
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Subtotal</Label>
@@ -302,12 +281,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
               );
             })}
 
-            {canAddMore && (
-              <Button type="button" variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addProgramRow}>
-                <Plus className="h-3.5 w-3.5" /> Agregar otro programa
-              </Button>
-            )}
+            <Button type="button" variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addPackageRow}>
+              <Plus className="h-3.5 w-3.5" /> Agregar otro paquete
+            </Button>
           </div>
+
 
           {grandTotal > 0 && (
             <div className="flex items-center justify-between rounded-lg bg-secondary/10 p-3">
