@@ -53,8 +53,8 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [age, setAge] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
   const [hasPathology, setHasPathology] = useState<'si' | 'no' | ''>('');
-  const [programs, setPrograms] = useState<ProgramEntry[]>([
-    { program: '', totalClasses: '', unitValue: '' },
+  const [packages, setPackages] = useState<PackageEntry[]>([
+    { packageSize: '', unitValue: '' },
   ]);
   const [cedulaFound, setCedulaFound] = useState(false);
   const [existingCodigo, setExistingCodigo] = useState<string | null>(null);
@@ -94,26 +94,14 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (a !== null && a >= 0 && a < 120) setAge(String(a));
   };
 
-  const existingPrograms = existingClients
-    .filter((c) => c.cedula === cedula.trim())
-    .map((c) => c.program)
-    .filter(Boolean);
-
-  const availablePrograms = (index: number) => {
-    const selectedInForm = programs.map((p, i) => (i !== index ? p.program : '')).filter(Boolean);
-    return PROGRAMS.filter((p) => !existingPrograms.includes(p) && !selectedInForm.includes(p));
-  };
-
-  const addProgramRow = () => setPrograms((prev) => [...prev, { program: '', totalClasses: '', unitValue: '' }]);
-  const removeProgramRow = (index: number) => setPrograms((prev) => prev.filter((_, i) => i !== index));
-  const updateProgram = (index: number, field: keyof ProgramEntry, value: string) =>
-    setPrograms((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
-
-  const canAddMore = programs.length < PROGRAMS.length - existingPrograms.length;
+  const addPackageRow = () => setPackages((prev) => [...prev, { packageSize: '', unitValue: '' }]);
+  const removePackageRow = (index: number) => setPackages((prev) => prev.filter((_, i) => i !== index));
+  const updatePackage = (index: number, field: keyof PackageEntry, value: string) =>
+    setPackages((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
 
   const reset = () => {
     setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setHasPathology('');
-    setPrograms([{ program: '', totalClasses: '', unitValue: '' }]);
+    setPackages([{ packageSize: '', unitValue: '' }]);
     setCedulaFound(false); setExistingCodigo(null);
   };
 
@@ -122,7 +110,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (hasPathology === 'si' && !medicalNotes.trim()) { toast.error('Describe la patología en observaciones'); return; }
     const finalMedicalNotes = hasPathology === 'si' ? medicalNotes.trim() : '';
 
-    const validPrograms = programs.filter((p) => p.program && p.totalClasses && p.unitValue);
+    const validPackages = packages.filter((p) => p.packageSize && p.unitValue);
 
     const base = {
       name: name.toUpperCase(),
@@ -133,17 +121,17 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
       age: age ? Number(age) : null,
     };
 
-    if (validPrograms.length === 0) {
-      // Registro inicial sin programa
+    if (validPackages.length === 0) {
       await onAdd({ ...base, program: null, totalClasses: 0, unitValue: 0, totalValue: 0 });
     } else {
-      for (const p of validPrograms) {
+      for (const p of validPackages) {
+        const size = Number(p.packageSize);
         await onAdd({
           ...base,
-          program: p.program,
-          totalClasses: Number(p.totalClasses),
+          program: null,
+          totalClasses: size,
           unitValue: Number(p.unitValue),
-          totalValue: Number(p.totalClasses) * Number(p.unitValue),
+          totalValue: size * Number(p.unitValue),
         });
       }
     }
@@ -152,10 +140,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     setOpen(false);
   };
 
-  const grandTotal = programs.reduce(
-    (sum, p) => sum + Number(p.totalClasses) * Number(p.unitValue),
+  const grandTotal = packages.reduce(
+    (sum, p) => sum + Number(p.packageSize) * Number(p.unitValue),
     0
   );
+
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
