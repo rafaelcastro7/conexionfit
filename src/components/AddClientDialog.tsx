@@ -235,49 +235,40 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
           </div>
 
 
-          {existingPrograms.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] text-muted-foreground font-body uppercase tracking-wider">Programas actuales:</span>
-              {existingPrograms.map((p) => (
-                <Badge key={p} variant="secondary" className="text-[10px] font-body">{p}</Badge>
-              ))}
-            </div>
-          )}
-
           <div className="space-y-3">
             <Label className="text-sm font-semibold">
-              Programas a matricular <span className="text-muted-foreground text-[10px] font-normal">(opcional — puedes matricular después)</span>
+              Paquetes a matricular <span className="text-muted-foreground text-[10px] font-normal">(opcional — el programa se asigna en otro módulo)</span>
             </Label>
-            {programs.map((entry, index) => {
-              const total = Number(entry.totalClasses) * Number(entry.unitValue);
+            {packages.map((entry, index) => {
+              const size = Number(entry.packageSize);
+              const total = size * Number(entry.unitValue);
               return (
                 <div key={index} className="rounded-lg border border-border p-3 space-y-2 bg-muted/30">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-body text-muted-foreground">Programa {index + 1}</span>
-                    {programs.length > 1 && (
-                      <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10" onClick={() => removeProgramRow(index)}>
+                    <span className="text-xs font-body text-muted-foreground">Paquete {index + 1}</span>
+                    {packages.length > 1 && (
+                      <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10" onClick={() => removePackageRow(index)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     )}
                   </div>
-                  <Select value={entry.program} onValueChange={(v) => updateProgram(index, 'program', v)}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Seleccionar programa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availablePrograms(index).map((p) => (
-                        <SelectItem key={p} value={p}>{p}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="grid gap-1">
-                      <Label className="text-[10px]">Nº Clases</Label>
-                      <Input type="number" className="h-8 text-sm" value={entry.totalClasses} onChange={(e) => updateProgram(index, 'totalClasses', e.target.value)} />
+                      <Label className="text-[10px]">Tipo de paquete</Label>
+                      <Select value={entry.packageSize} onValueChange={(v) => updatePackage(index, 'packageSize', v)}>
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Seleccionar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PACKAGE_OPTIONS.map((n) => (
+                            <SelectItem key={n} value={String(n)}>{n} {n === 1 ? 'clase' : 'clases'}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Valor Unitario</Label>
-                      <Input type="number" className="h-8 text-sm" value={entry.unitValue} onChange={(e) => updateProgram(index, 'unitValue', e.target.value)} />
+                      <Input type="number" className="h-8 text-sm" value={entry.unitValue} onChange={(e) => updatePackage(index, 'unitValue', e.target.value)} />
                     </div>
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Subtotal</Label>
@@ -290,12 +281,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
               );
             })}
 
-            {canAddMore && (
-              <Button type="button" variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addProgramRow}>
-                <Plus className="h-3.5 w-3.5" /> Agregar otro programa
-              </Button>
-            )}
+            <Button type="button" variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addPackageRow}>
+              <Plus className="h-3.5 w-3.5" /> Agregar otro paquete
+            </Button>
           </div>
+
 
           {grandTotal > 0 && (
             <div className="flex items-center justify-between rounded-lg bg-secondary/10 p-3">
