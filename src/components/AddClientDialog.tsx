@@ -4,15 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PROGRAMS } from '@/types/client';
 import { Client } from '@/hooks/useClients';
 import { UserPlus, Plus, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
-interface ProgramEntry {
-  program: string;
-  totalClasses: string;
+const PACKAGE_OPTIONS = [1, 5, 10, 20] as const;
+
+interface PackageEntry {
+  packageSize: string; // '1' | '5' | '10' | '20'
   unitValue: string;
 }
 
