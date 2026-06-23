@@ -14,14 +14,31 @@ type PackageSize = (typeof PACKAGE_OPTIONS)[number];
 // Reglas de precio por paquete (valor unitario por clase)
 const UNIT_VALUE_BY_PACKAGE: Record<PackageSize, number> = {
   1: 70000,
-  4: 60000,   // 4 x 60.000 = 240.000
-  10: 40000,  // 10 x 40.000 = 400.000
-  20: 33000,  // 20 x 33.000 = 660.000
+  4: 60000,
+  10: 40000,
+  20: 33000,
+};
+
+// Vigencia en días según el tamaño del paquete
+const VALIDITY_DAYS_BY_PACKAGE: Record<PackageSize, number> = {
+  1: 0,
+  4: 30,
+  10: 60,
+  20: 90,
+};
+
+const addDaysISO = (iso: string, days: number): string => {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return '';
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
 };
 
 interface PackageEntry {
-  packageSize: string; // '1' | '4' | '10' | '20'
-  unitValue: string;
+  packageSize: string;
+  startDate: string;
+  endDate: string;
 }
 
 export interface NewClientPayload {
@@ -36,6 +53,8 @@ export interface NewClientPayload {
   birthDate?: string | null;
   age?: number | null;
   instagram?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 interface Props {
@@ -65,7 +84,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [instagram, setInstagram] = useState('');
   const [hasPathology, setHasPathology] = useState<'si' | 'no' | ''>('');
   const [packages, setPackages] = useState<PackageEntry[]>([
-    { packageSize: '', unitValue: '' },
+    { packageSize: '', startDate: '', endDate: '' },
   ]);
   const [cedulaFound, setCedulaFound] = useState(false);
   const [existingCodigo, setExistingCodigo] = useState<string | null>(null);
@@ -106,18 +125,23 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (a !== null && a >= 0 && a < 120) setAge(String(a));
   };
 
-  const addPackageRow = () => setPackages((prev) => [...prev, { packageSize: '', unitValue: '' }]);
-  const removePackageRow = (index: number) => setPackages((prev) => prev.filter((_, i) => i !== index));
+  const addPackageRow = () =>
+    setPackages((prev) => [...prev, { packageSize: '', startDate: '', endDate: '' }]);
+  const removePackageRow = (index: number) =>
+    setPackages((prev) => prev.filter((_, i) => i !== index));
   const updatePackage = (index: number, field: keyof PackageEntry, value: string) =>
     setPackages((prev) =>
       prev.map((p, i) => {
         if (i !== index) return p;
-        const next = { ...p, [field]: value };
-        // Auto-completar valor unitario según el tamaño del paquete
-        if (field === 'packageSize') {
-          const sizeNum = Number(value) as PackageSize;
-          if (UNIT_VALUE_BY_PACKAGE[sizeNum] != null) {
-            next.unitValue = String(UNIT_VALUE_BY_PACKAGE[sizeNum]);
+        const next: PackageEntry = { ...p, [field]: value };
+        // Recalcular fecha fin si cambia tamaño o fecha inicio
+        if (field === 'packageSize' || field === 'startDate') {
+          const sizeNum = Number(next.packageSize) as PackageSize;
+          const days = VALIDITY_DAYS_BY_PACKAGE[sizeNum];
+          if (next.startDate && days != null) {
+            next.endDate = addDaysISO(next.startDate, days);
+          } else {
+            next.endDate = '';
           }
         }
         return next;
@@ -126,7 +150,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
 
   const reset = () => {
     setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setInstagram(''); setHasPathology('');
-    setPackages([{ packageSize: '', unitValue: '' }]);
+    setPackages([{ packageSize: '', startDate: '', endDate: '' }]);
     setCedulaFound(false); setExistingCodigo(null);
   };
 
@@ -135,7 +159,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (hasPathology === 'si' && !medicalNotes.trim()) { toast.error('Describe la patología en observaciones'); return; }
     const finalMedicalNotes = hasPathology === 'si' ? medicalNotes.trim() : '';
 
-    const validPackages = packages.filter((p) => p.packageSize && p.unitValue);
+    const validPackages = packages.filter((p) => p.packageSize);
 
     const base = {
       name: name.toUpperCase(),
@@ -148,16 +172,19 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     };
 
     if (validPackages.length === 0) {
-      await onAdd({ ...base, program: null, totalClasses: 0, unitValue: 0, totalValue: 0 });
+      await onAdd({ ...base, program: null, totalClasses: 0, unitValue: 0, totalValue: 0, startDate: null, endDate: null });
     } else {
       for (const p of validPackages) {
-        const size = Number(p.packageSize);
+        const size = Number(p.packageSize) as PackageSize;
+        const unit = UNIT_VALUE_BY_PACKAGE[size] ?? 0;
         await onAdd({
           ...base,
           program: null,
           totalClasses: size,
-          unitValue: Number(p.unitValue),
-          totalValue: size * Number(p.unitValue),
+          unitValue: unit,
+          totalValue: size * unit,
+          startDate: p.startDate || null,
+          endDate: p.endDate || null,
         });
       }
     }
@@ -166,10 +193,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     setOpen(false);
   };
 
-  const grandTotal = packages.reduce(
-    (sum, p) => sum + Number(p.packageSize) * Number(p.unitValue),
-    0
-  );
+  const grandTotal = packages.reduce((sum, p) => {
+    const size = Number(p.packageSize) as PackageSize;
+    const unit = UNIT_VALUE_BY_PACKAGE[size] ?? 0;
+    return sum + (Number.isFinite(size) ? size * unit : 0);
+  }, 0);
 
 
   return (
@@ -281,8 +309,10 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
               Paquetes a matricular <span className="text-muted-foreground text-[10px] font-normal">(opcional — el programa se asigna en otro módulo)</span>
             </Label>
             {packages.map((entry, index) => {
-              const size = Number(entry.packageSize);
-              const total = size * Number(entry.unitValue);
+              const size = Number(entry.packageSize) as PackageSize;
+              const unit = UNIT_VALUE_BY_PACKAGE[size] ?? 0;
+              const total = (Number.isFinite(size) ? size : 0) * unit;
+              const days = VALIDITY_DAYS_BY_PACKAGE[size];
               return (
                 <div key={index} className="rounded-lg border border-border p-3 space-y-2 bg-muted/30">
                   <div className="flex items-center justify-between">
@@ -293,7 +323,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                       </Button>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Tipo de paquete</Label>
                       <Select value={entry.packageSize} onValueChange={(v) => updatePackage(index, 'packageSize', v)}>
@@ -308,13 +338,30 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                       </Select>
                     </div>
                     <div className="grid gap-1">
-                      <Label className="text-[10px]">Valor Unitario</Label>
-                      <Input type="number" className="h-8 text-sm" value={entry.unitValue} onChange={(e) => updatePackage(index, 'unitValue', e.target.value)} />
-                    </div>
-                    <div className="grid gap-1">
                       <Label className="text-[10px]">Subtotal</Label>
                       <div className="flex items-center h-8 px-2 rounded-md border bg-muted text-xs font-medium">
                         ${total.toLocaleString('es-CO')}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-1">
+                      <Label className="text-[10px]">Fecha de inicio</Label>
+                      <Input
+                        type="date"
+                        className="h-8 text-sm"
+                        value={entry.startDate}
+                        onChange={(e) => updatePackage(index, 'startDate', e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-1">
+                      <Label className="text-[10px]">
+                        Fecha de fin {days != null && (
+                          <span className="text-muted-foreground font-normal">(vigencia {days} días)</span>
+                        )}
+                      </Label>
+                      <div className="flex items-center h-8 px-2 rounded-md border bg-muted text-xs font-medium">
+                        {entry.endDate || '—'}
                       </div>
                     </div>
                   </div>

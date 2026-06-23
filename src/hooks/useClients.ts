@@ -110,6 +110,8 @@ export function useClients() {
     birthDate?: string | null;
     age?: number | null;
     instagram?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
   }) => {
     const { error } = await supabase.from('clients').insert({
       name: client.name,
@@ -123,6 +125,8 @@ export function useClients() {
       birth_date: client.birthDate ?? null,
       age: client.age ?? null,
       instagram: client.instagram ?? null,
+      start_date: client.startDate ?? null,
+      end_date: client.endDate ?? null,
     } as any);
 
     if (error) {
