@@ -62,6 +62,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [birthDate, setBirthDate] = useState('');
   const [age, setAge] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
+  const [instagram, setInstagram] = useState('');
   const [hasPathology, setHasPathology] = useState<'si' | 'no' | ''>('');
   const [packages, setPackages] = useState<PackageEntry[]>([
     { packageSize: '', unitValue: '' },
