@@ -84,7 +84,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [instagram, setInstagram] = useState('');
   const [hasPathology, setHasPathology] = useState<'si' | 'no' | ''>('');
   const [packages, setPackages] = useState<PackageEntry[]>([
-    { packageSize: '', unitValue: '' },
+    { packageSize: '', startDate: '', endDate: '' },
   ]);
   const [cedulaFound, setCedulaFound] = useState(false);
   const [existingCodigo, setExistingCodigo] = useState<string | null>(null);
@@ -125,18 +125,23 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (a !== null && a >= 0 && a < 120) setAge(String(a));
   };
 
-  const addPackageRow = () => setPackages((prev) => [...prev, { packageSize: '', unitValue: '' }]);
-  const removePackageRow = (index: number) => setPackages((prev) => prev.filter((_, i) => i !== index));
+  const addPackageRow = () =>
+    setPackages((prev) => [...prev, { packageSize: '', startDate: '', endDate: '' }]);
+  const removePackageRow = (index: number) =>
+    setPackages((prev) => prev.filter((_, i) => i !== index));
   const updatePackage = (index: number, field: keyof PackageEntry, value: string) =>
     setPackages((prev) =>
       prev.map((p, i) => {
         if (i !== index) return p;
-        const next = { ...p, [field]: value };
-        // Auto-completar valor unitario según el tamaño del paquete
-        if (field === 'packageSize') {
-          const sizeNum = Number(value) as PackageSize;
-          if (UNIT_VALUE_BY_PACKAGE[sizeNum] != null) {
-            next.unitValue = String(UNIT_VALUE_BY_PACKAGE[sizeNum]);
+        const next: PackageEntry = { ...p, [field]: value };
+        // Recalcular fecha fin si cambia tamaño o fecha inicio
+        if (field === 'packageSize' || field === 'startDate') {
+          const sizeNum = Number(next.packageSize) as PackageSize;
+          const days = VALIDITY_DAYS_BY_PACKAGE[sizeNum];
+          if (next.startDate && days != null) {
+            next.endDate = addDaysISO(next.startDate, days);
+          } else {
+            next.endDate = '';
           }
         }
         return next;
@@ -145,7 +150,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
 
   const reset = () => {
     setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setInstagram(''); setHasPathology('');
-    setPackages([{ packageSize: '', unitValue: '' }]);
+    setPackages([{ packageSize: '', startDate: '', endDate: '' }]);
     setCedulaFound(false); setExistingCodigo(null);
   };
 
@@ -154,7 +159,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     if (hasPathology === 'si' && !medicalNotes.trim()) { toast.error('Describe la patología en observaciones'); return; }
     const finalMedicalNotes = hasPathology === 'si' ? medicalNotes.trim() : '';
 
-    const validPackages = packages.filter((p) => p.packageSize && p.unitValue);
+    const validPackages = packages.filter((p) => p.packageSize);
 
     const base = {
       name: name.toUpperCase(),
@@ -167,16 +172,19 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     };
 
     if (validPackages.length === 0) {
-      await onAdd({ ...base, program: null, totalClasses: 0, unitValue: 0, totalValue: 0 });
+      await onAdd({ ...base, program: null, totalClasses: 0, unitValue: 0, totalValue: 0, startDate: null, endDate: null });
     } else {
       for (const p of validPackages) {
-        const size = Number(p.packageSize);
+        const size = Number(p.packageSize) as PackageSize;
+        const unit = UNIT_VALUE_BY_PACKAGE[size] ?? 0;
         await onAdd({
           ...base,
           program: null,
           totalClasses: size,
-          unitValue: Number(p.unitValue),
-          totalValue: size * Number(p.unitValue),
+          unitValue: unit,
+          totalValue: size * unit,
+          startDate: p.startDate || null,
+          endDate: p.endDate || null,
         });
       }
     }
@@ -185,10 +193,11 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
     setOpen(false);
   };
 
-  const grandTotal = packages.reduce(
-    (sum, p) => sum + Number(p.packageSize) * Number(p.unitValue),
-    0
-  );
+  const grandTotal = packages.reduce((sum, p) => {
+    const size = Number(p.packageSize) as PackageSize;
+    const unit = UNIT_VALUE_BY_PACKAGE[size] ?? 0;
+    return sum + (Number.isFinite(size) ? size * unit : 0);
+  }, 0);
 
 
   return (
