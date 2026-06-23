@@ -109,10 +109,23 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const addPackageRow = () => setPackages((prev) => [...prev, { packageSize: '', unitValue: '' }]);
   const removePackageRow = (index: number) => setPackages((prev) => prev.filter((_, i) => i !== index));
   const updatePackage = (index: number, field: keyof PackageEntry, value: string) =>
-    setPackages((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+    setPackages((prev) =>
+      prev.map((p, i) => {
+        if (i !== index) return p;
+        const next = { ...p, [field]: value };
+        // Auto-completar valor unitario según el tamaño del paquete
+        if (field === 'packageSize') {
+          const sizeNum = Number(value) as PackageSize;
+          if (UNIT_VALUE_BY_PACKAGE[sizeNum] != null) {
+            next.unitValue = String(UNIT_VALUE_BY_PACKAGE[sizeNum]);
+          }
+        }
+        return next;
+      })
+    );
 
   const reset = () => {
-    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setHasPathology('');
+    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setInstagram(''); setHasPathology('');
     setPackages([{ packageSize: '', unitValue: '' }]);
     setCedulaFound(false); setExistingCodigo(null);
   };
