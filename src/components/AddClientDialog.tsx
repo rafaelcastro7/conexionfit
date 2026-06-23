@@ -144,6 +144,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
       phone: phone.trim() || null,
       birthDate: birthDate || null,
       age: age ? Number(age) : null,
+      instagram: instagram.trim().replace(/^@/, '') || null,
     };
 
     if (validPackages.length === 0) {
