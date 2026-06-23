@@ -14,14 +14,31 @@ type PackageSize = (typeof PACKAGE_OPTIONS)[number];
 // Reglas de precio por paquete (valor unitario por clase)
 const UNIT_VALUE_BY_PACKAGE: Record<PackageSize, number> = {
   1: 70000,
-  4: 60000,   // 4 x 60.000 = 240.000
-  10: 40000,  // 10 x 40.000 = 400.000
-  20: 33000,  // 20 x 33.000 = 660.000
+  4: 60000,
+  10: 40000,
+  20: 33000,
+};
+
+// Vigencia en días según el tamaño del paquete
+const VALIDITY_DAYS_BY_PACKAGE: Record<PackageSize, number> = {
+  1: 0,
+  4: 30,
+  10: 60,
+  20: 90,
+};
+
+const addDaysISO = (iso: string, days: number): string => {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return '';
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
 };
 
 interface PackageEntry {
-  packageSize: string; // '1' | '4' | '10' | '20'
-  unitValue: string;
+  packageSize: string;
+  startDate: string;
+  endDate: string;
 }
 
 export interface NewClientPayload {
@@ -36,6 +53,8 @@ export interface NewClientPayload {
   birthDate?: string | null;
   age?: number | null;
   instagram?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 interface Props {
