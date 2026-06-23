@@ -220,6 +220,21 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
             </div>
           </div>
 
+          <div className="grid gap-1.5">
+            <Label>Usuario de Instagram <span className="text-muted-foreground text-[10px]">(opcional)</span></Label>
+            <div className="flex items-center rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
+              <span className="pl-3 pr-1 text-sm text-muted-foreground select-none">@</span>
+              <Input
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value.replace(/^@/, ''))}
+                placeholder="usuario.instagram"
+                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
+                maxLength={30}
+              />
+            </div>
+          </div>
+
+
           <div className="grid grid-cols-3 gap-3">
             <div className="grid gap-1.5">
               <Label>Celular</Label>
