@@ -27,6 +27,7 @@ export interface Client {
   phone?: string | null;
   birthDate?: string | null;
   age?: number | null;
+  instagram?: string | null;
   category?: 'ORO' | 'PLATA' | 'DIAMANTE' | 'BRONCE' | null;
 }
 
