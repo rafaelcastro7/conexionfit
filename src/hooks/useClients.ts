@@ -27,6 +27,7 @@ export interface Client {
   phone?: string | null;
   birthDate?: string | null;
   age?: number | null;
+  instagram?: string | null;
   category?: 'ORO' | 'PLATA' | 'DIAMANTE' | 'BRONCE' | null;
 }
 
@@ -74,6 +75,7 @@ export function useClients() {
       phone: c.phone ?? null,
       birthDate: c.birth_date ?? null,
       age: c.age ?? null,
+      instagram: c.instagram ?? null,
       category: (c.category ?? null) as Client['category'],
       attendance: (attendanceData || [])
         .filter((a: any) => a.client_id === c.id)
@@ -107,6 +109,7 @@ export function useClients() {
     phone?: string | null;
     birthDate?: string | null;
     age?: number | null;
+    instagram?: string | null;
   }) => {
     const { error } = await supabase.from('clients').insert({
       name: client.name,
@@ -119,6 +122,7 @@ export function useClients() {
       phone: client.phone ?? null,
       birth_date: client.birthDate ?? null,
       age: client.age ?? null,
+      instagram: client.instagram ?? null,
     } as any);
 
     if (error) {

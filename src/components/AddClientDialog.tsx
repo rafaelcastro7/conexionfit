@@ -8,10 +8,19 @@ import { Client } from '@/hooks/useClients';
 import { UserPlus, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const PACKAGE_OPTIONS = [1, 5, 10, 20] as const;
+const PACKAGE_OPTIONS = [1, 4, 10, 20] as const;
+type PackageSize = (typeof PACKAGE_OPTIONS)[number];
+
+// Reglas de precio por paquete (valor unitario por clase)
+const UNIT_VALUE_BY_PACKAGE: Record<PackageSize, number> = {
+  1: 70000,
+  4: 60000,   // 4 x 60.000 = 240.000
+  10: 40000,  // 10 x 40.000 = 400.000
+  20: 33000,  // 20 x 33.000 = 660.000
+};
 
 interface PackageEntry {
-  packageSize: string; // '1' | '5' | '10' | '20'
+  packageSize: string; // '1' | '4' | '10' | '20'
   unitValue: string;
 }
 
@@ -26,6 +35,7 @@ export interface NewClientPayload {
   phone?: string | null;
   birthDate?: string | null;
   age?: number | null;
+  instagram?: string | null;
 }
 
 interface Props {
@@ -52,6 +62,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const [birthDate, setBirthDate] = useState('');
   const [age, setAge] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
+  const [instagram, setInstagram] = useState('');
   const [hasPathology, setHasPathology] = useState<'si' | 'no' | ''>('');
   const [packages, setPackages] = useState<PackageEntry[]>([
     { packageSize: '', unitValue: '' },
@@ -79,6 +90,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
       setBirthDate(existing.birthDate ?? '');
       setAge(existing.age ? String(existing.age) : '');
       setMedicalNotes(existing.medicalNotes ?? '');
+      setInstagram(existing.instagram ?? '');
       setHasPathology(existing.medicalNotes ? 'si' : 'no');
       setCedulaFound(true);
       setExistingCodigo(existing.codigo || null);
@@ -97,10 +109,23 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
   const addPackageRow = () => setPackages((prev) => [...prev, { packageSize: '', unitValue: '' }]);
   const removePackageRow = (index: number) => setPackages((prev) => prev.filter((_, i) => i !== index));
   const updatePackage = (index: number, field: keyof PackageEntry, value: string) =>
-    setPackages((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+    setPackages((prev) =>
+      prev.map((p, i) => {
+        if (i !== index) return p;
+        const next = { ...p, [field]: value };
+        // Auto-completar valor unitario según el tamaño del paquete
+        if (field === 'packageSize') {
+          const sizeNum = Number(value) as PackageSize;
+          if (UNIT_VALUE_BY_PACKAGE[sizeNum] != null) {
+            next.unitValue = String(UNIT_VALUE_BY_PACKAGE[sizeNum]);
+          }
+        }
+        return next;
+      })
+    );
 
   const reset = () => {
-    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setHasPathology('');
+    setName(''); setCedula(''); setPhone(''); setBirthDate(''); setAge(''); setMedicalNotes(''); setInstagram(''); setHasPathology('');
     setPackages([{ packageSize: '', unitValue: '' }]);
     setCedulaFound(false); setExistingCodigo(null);
   };
@@ -119,6 +144,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
       phone: phone.trim() || null,
       birthDate: birthDate || null,
       age: age ? Number(age) : null,
+      instagram: instagram.trim().replace(/^@/, '') || null,
     };
 
     if (validPackages.length === 0) {
@@ -193,6 +219,21 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
               />
             </div>
           </div>
+
+          <div className="grid gap-1.5">
+            <Label>Usuario de Instagram <span className="text-muted-foreground text-[10px]">(opcional)</span></Label>
+            <div className="flex items-center rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
+              <span className="pl-3 pr-1 text-sm text-muted-foreground select-none">@</span>
+              <Input
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value.replace(/^@/, ''))}
+                placeholder="usuario.instagram"
+                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
+                maxLength={30}
+              />
+            </div>
+          </div>
+
 
           <div className="grid grid-cols-3 gap-3">
             <div className="grid gap-1.5">
