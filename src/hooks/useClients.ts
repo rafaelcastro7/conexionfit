@@ -75,6 +75,7 @@ export function useClients() {
       phone: c.phone ?? null,
       birthDate: c.birth_date ?? null,
       age: c.age ?? null,
+      instagram: c.instagram ?? null,
       category: (c.category ?? null) as Client['category'],
       attendance: (attendanceData || [])
         .filter((a: any) => a.client_id === c.id)
