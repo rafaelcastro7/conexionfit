@@ -106,6 +106,7 @@ export type Database = {
           codigo: string
           created_at: string
           email: string | null
+          end_date: string | null
           id: string
           instagram: string | null
           invoice_number: string | null
@@ -114,6 +115,7 @@ export type Database = {
           phone: string | null
           program: string | null
           sheet_notes: string | null
+          start_date: string | null
           status: string
           total_classes: number
           total_value: number
@@ -128,6 +130,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           email?: string | null
+          end_date?: string | null
           id?: string
           instagram?: string | null
           invoice_number?: string | null
@@ -136,6 +139,7 @@ export type Database = {
           phone?: string | null
           program?: string | null
           sheet_notes?: string | null
+          start_date?: string | null
           status?: string
           total_classes?: number
           total_value?: number
@@ -150,6 +154,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           email?: string | null
+          end_date?: string | null
           id?: string
           instagram?: string | null
           invoice_number?: string | null
@@ -158,6 +163,7 @@ export type Database = {
           phone?: string | null
           program?: string | null
           sheet_notes?: string | null
+          start_date?: string | null
           status?: string
           total_classes?: number
           total_value?: number
