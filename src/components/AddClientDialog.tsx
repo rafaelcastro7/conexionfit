@@ -309,8 +309,10 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
               Paquetes a matricular <span className="text-muted-foreground text-[10px] font-normal">(opcional — el programa se asigna en otro módulo)</span>
             </Label>
             {packages.map((entry, index) => {
-              const size = Number(entry.packageSize);
-              const total = size * Number(entry.unitValue);
+              const size = Number(entry.packageSize) as PackageSize;
+              const unit = UNIT_VALUE_BY_PACKAGE[size] ?? 0;
+              const total = (Number.isFinite(size) ? size : 0) * unit;
+              const days = VALIDITY_DAYS_BY_PACKAGE[size];
               return (
                 <div key={index} className="rounded-lg border border-border p-3 space-y-2 bg-muted/30">
                   <div className="flex items-center justify-between">
@@ -321,7 +323,7 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                       </Button>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <div className="grid gap-1">
                       <Label className="text-[10px]">Tipo de paquete</Label>
                       <Select value={entry.packageSize} onValueChange={(v) => updatePackage(index, 'packageSize', v)}>
@@ -336,13 +338,30 @@ const AddClientDialog = ({ onAdd, existingClients }: Props) => {
                       </Select>
                     </div>
                     <div className="grid gap-1">
-                      <Label className="text-[10px]">Valor Unitario</Label>
-                      <Input type="number" className="h-8 text-sm" value={entry.unitValue} onChange={(e) => updatePackage(index, 'unitValue', e.target.value)} />
-                    </div>
-                    <div className="grid gap-1">
                       <Label className="text-[10px]">Subtotal</Label>
                       <div className="flex items-center h-8 px-2 rounded-md border bg-muted text-xs font-medium">
                         ${total.toLocaleString('es-CO')}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-1">
+                      <Label className="text-[10px]">Fecha de inicio</Label>
+                      <Input
+                        type="date"
+                        className="h-8 text-sm"
+                        value={entry.startDate}
+                        onChange={(e) => updatePackage(index, 'startDate', e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-1">
+                      <Label className="text-[10px]">
+                        Fecha de fin {days != null && (
+                          <span className="text-muted-foreground font-normal">(vigencia {days} días)</span>
+                        )}
+                      </Label>
+                      <div className="flex items-center h-8 px-2 rounded-md border bg-muted text-xs font-medium">
+                        {entry.endDate || '—'}
                       </div>
                     </div>
                   </div>
