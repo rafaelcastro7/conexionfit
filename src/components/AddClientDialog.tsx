@@ -8,10 +8,19 @@ import { Client } from '@/hooks/useClients';
 import { UserPlus, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const PACKAGE_OPTIONS = [1, 5, 10, 20] as const;
+const PACKAGE_OPTIONS = [1, 4, 10, 20] as const;
+type PackageSize = (typeof PACKAGE_OPTIONS)[number];
+
+// Reglas de precio por paquete (valor unitario por clase)
+const UNIT_VALUE_BY_PACKAGE: Record<PackageSize, number> = {
+  1: 70000,
+  4: 60000,   // 4 x 60.000 = 240.000
+  10: 40000,  // 10 x 40.000 = 400.000
+  20: 33000,  // 20 x 33.000 = 660.000
+};
 
 interface PackageEntry {
-  packageSize: string; // '1' | '5' | '10' | '20'
+  packageSize: string; // '1' | '4' | '10' | '20'
   unitValue: string;
 }
 
@@ -26,6 +35,7 @@ export interface NewClientPayload {
   phone?: string | null;
   birthDate?: string | null;
   age?: number | null;
+  instagram?: string | null;
 }
 
 interface Props {
